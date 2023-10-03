@@ -36,7 +36,7 @@ jobs:
       with:
         connection_url: ${{ secrets.MAIL_CONNECTION }}
         to: ${{ secrets.TO_EMAIL }}
-        from: ${{ secrets.FROM_EMAIL }}
+        from: GitHub <${{ secrets.FROM_EMAIL }}>
         subject: Reddit Infinity APK
         body: APK for version ${{ steps.custom.outputs.app_version }}
         attachments: app/build/outputs/apk/release/app-release.apk
