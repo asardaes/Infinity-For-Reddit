@@ -35,7 +35,7 @@ jobs:
       uses: dawidd6/action-send-mail@v3
       with:
         connection_url: ${{ secrets.MAIL_CONNECTION }}
-        to: ${{ github.event.pusher.email }}
+        to: ${{ secrets.TO_EMAIL }}
         from: Self
         subject: Reddit Infinity APK
         body: APK for version ${{ steps.custom.outputs.app_version }}
