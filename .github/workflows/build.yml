@@ -20,17 +20,23 @@ jobs:
         distribution: 'temurin'
 
     - name: Inject API key
+      id: custom
       shell: sh
-      run: sed -i 's/__API_KEY_GOES_HERE__/${{ secrets.REDDIT_API_KEY }}/' app/src/main/java/ml/docilealligator/infinityforreddit/utils/APIUtils.java
+      run: |
+        sed -i 's/__API_KEY_GOES_HERE__/${{ secrets.REDDIT_API_KEY }}/' app/src/main/java/ml/docilealligator/infinityforreddit/utils/APIUtils.java
+        echo "app_version=$(grep -m 1 versionName app/build.gradle | cut -d '"' -f 2)" >>"$GITHUB_OUTPUT"
 
     - name: Setup and build with Gradle
       uses: gradle/gradle-build-action@v2
       with:
         arguments: assembleRelease
 
-    - name: Upload apk
-      uses: actions/upload-artifact@v3
+    - name: Send apk
+      uses: dawidd6/action-send-mail@v3
       with:
-        name: Infinity-${{github.sha}}
-        path: app/build/outputs/apk/release/
-        if-no-files-found: error
+        connection_url: ${{ secrets.MAIL_CONNECTION }}
+        to: ${{ github.event.pusher.email }}
+        from: Self
+        subject: Reddit Infinity APK
+        body: APK for version ${{ steps.custom.outputs.app_version }}
+        attachments: app/build/outputs/apk/release/app-release.apk
