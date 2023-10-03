@@ -26,11 +26,11 @@ jobs:
     - name: Setup and build with Gradle
       uses: gradle/gradle-build-action@v2
       with:
-        arguments: build -x lint
+        arguments: assembleRelease
 
     - name: Upload apk
       uses: actions/upload-artifact@v3
       with:
         name: Infinity-${{github.sha}}
-        path: app/build/outputs/apk/
+        path: app/build/outputs/apk/release/
         if-no-files-found: error
