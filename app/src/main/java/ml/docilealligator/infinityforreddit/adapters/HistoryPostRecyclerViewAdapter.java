@@ -51,7 +51,6 @@ import com.google.android.exoplayer2.ui.DefaultTimeBar;
 import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.ui.TimeBar;
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.google.common.collect.ImmutableList;
 import com.libRG.CustomTextView;
 
@@ -176,6 +175,7 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
     private int mDefaultLinkPostLayout;
     private int mColorAccent;
     private int mCardViewBackgroundColor;
+    private int mFilledCardViewBackgroundColor;
     private int mPrimaryTextColor;
     private int mSecondaryTextColor;
     private int mPostTitleColor;
@@ -318,8 +318,8 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
             mDefaultLinkPostLayout = Integer.parseInt(sharedPreferences.getString(SharedPreferencesUtils.DEFAULT_LINK_POST_LAYOUT_KEY, "-1"));
 
             mColorAccent = customThemeWrapper.getColorAccent();
-            //mCardViewBackgroundColor = customThemeWrapper.getCardViewBackgroundColor();
-            mCardViewBackgroundColor = Color.parseColor("#FBEEFC");
+            mCardViewBackgroundColor = customThemeWrapper.getCardViewBackgroundColor();
+            mFilledCardViewBackgroundColor = customThemeWrapper.getFilledCardViewBackgroundColor();
             mPrimaryTextColor = customThemeWrapper.getPrimaryTextColor();
             mSecondaryTextColor = customThemeWrapper.getSecondaryTextColor();
             mPostTitleColor = customThemeWrapper.getPostTitleColor();
@@ -695,9 +695,9 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
 
                 ((PostBaseViewHolder) holder).titleTextView.setText(post.getTitle());
                 if (!mHideTheNumberOfVotes) {
-                    ((PostBaseViewHolder) holder).upvoteButton.setText(Utils.getNVotes(mShowAbsoluteNumberOfVotes, post.getScore() + post.getVoteType()));
+                    ((PostBaseViewHolder) holder).scoreTextView.setText(Utils.getNVotes(mShowAbsoluteNumberOfVotes, post.getScore() + post.getVoteType()));
                 } else {
-                    ((PostBaseViewHolder) holder).upvoteButton.setText(mActivity.getString(R.string.vote));
+                    ((PostBaseViewHolder) holder).scoreTextView.setText(mActivity.getString(R.string.vote));
                 }
 
                 if (post.isLocked()) {
@@ -733,14 +733,15 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                 switch (post.getVoteType()) {
                     case 1:
                         //Upvoted
-                        ((PostBaseViewHolder) holder).upvoteButton.setTextColor(mUpvotedColor);
                         ((PostBaseViewHolder) holder).upvoteButton.setIconResource(R.drawable.ic_upvote_filled_24dp);
                         ((PostBaseViewHolder) holder).upvoteButton.setIconTint(ColorStateList.valueOf(mUpvotedColor));
+                        ((PostBaseViewHolder) holder).scoreTextView.setTextColor(mUpvotedColor);
                         break;
                     case -1:
                         //Downvoted
                         ((PostBaseViewHolder) holder).downvoteButton.setIconResource(R.drawable.ic_downvote_filled_24dp);
                         ((PostBaseViewHolder) holder).downvoteButton.setIconTint(ColorStateList.valueOf(mDownvotedColor));
+                        ((PostBaseViewHolder) holder).scoreTextView.setTextColor(mDownvotedColor);
                         break;
                 }
 
@@ -752,8 +753,8 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                 if (post.isArchived()) {
                     ((PostBaseViewHolder) holder).archivedImageView.setVisibility(View.VISIBLE);
 
-                    ((PostBaseViewHolder) holder).upvoteButton.setTextColor(mVoteAndReplyUnavailableVoteButtonColor);
                     ((PostBaseViewHolder) holder).upvoteButton.setIconTint(ColorStateList.valueOf(mVoteAndReplyUnavailableVoteButtonColor));
+                    ((PostBaseViewHolder) holder).scoreTextView.setTextColor(mVoteAndReplyUnavailableVoteButtonColor);
                     ((PostBaseViewHolder) holder).downvoteButton.setIconTint(ColorStateList.valueOf(mVoteAndReplyUnavailableVoteButtonColor));
                 }
 
@@ -1278,9 +1279,9 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
 
                 ((PostCompactBaseViewHolder) holder).titleTextView.setText(title);
                 if (!mHideTheNumberOfVotes) {
-                    ((PostCompactBaseViewHolder) holder).upvoteButton.setText(Utils.getNVotes(mShowAbsoluteNumberOfVotes, post.getScore() + post.getVoteType()));
+                    ((PostCompactBaseViewHolder) holder).scoreTextView.setText(Utils.getNVotes(mShowAbsoluteNumberOfVotes, post.getScore() + post.getVoteType()));
                 } else {
-                    ((PostCompactBaseViewHolder) holder).upvoteButton.setText(mActivity.getString(R.string.vote));
+                    ((PostCompactBaseViewHolder) holder).scoreTextView.setText(mActivity.getString(R.string.vote));
                 }
 
                 if (post.isLocked()) {
@@ -1316,14 +1317,15 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                 switch (post.getVoteType()) {
                     case 1:
                         //Upvoted
-                        ((PostCompactBaseViewHolder) holder).upvoteButton.setTextColor(mUpvotedColor);
                         ((PostCompactBaseViewHolder) holder).upvoteButton.setIconResource(R.drawable.ic_upvote_filled_24dp);
                         ((PostCompactBaseViewHolder) holder).upvoteButton.setIconTint(ColorStateList.valueOf(mUpvotedColor));
+                        ((PostCompactBaseViewHolder) holder).scoreTextView.setTextColor(mUpvotedColor);
                         break;
                     case -1:
                         //Downvoted
                         ((PostCompactBaseViewHolder) holder).downvoteButton.setIconResource(R.drawable.ic_downvote_filled_24dp);
                         ((PostCompactBaseViewHolder) holder).downvoteButton.setIconTint(ColorStateList.valueOf(mDownvotedColor));
+                        ((PostCompactBaseViewHolder) holder).scoreTextView.setTextColor(mDownvotedColor);
                         break;
                 }
 
@@ -1348,8 +1350,8 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                 if (isArchived) {
                     ((PostCompactBaseViewHolder) holder).archivedImageView.setVisibility(View.VISIBLE);
 
-                    ((PostCompactBaseViewHolder) holder).upvoteButton.setTextColor(mVoteAndReplyUnavailableVoteButtonColor);
                     ((PostCompactBaseViewHolder) holder).upvoteButton.setIconTint(ColorStateList.valueOf(mVoteAndReplyUnavailableVoteButtonColor));
+                    ((PostCompactBaseViewHolder) holder).scoreTextView.setTextColor(mVoteAndReplyUnavailableVoteButtonColor);
                     ((PostCompactBaseViewHolder) holder).downvoteButton.setIconTint(ColorStateList.valueOf(mVoteAndReplyUnavailableVoteButtonColor));
                 }
 
@@ -1747,23 +1749,23 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
 
                 ((PostMaterial3CardBaseViewHolder) holder).titleTextView.setText(post.getTitle());
                 if (!mHideTheNumberOfVotes) {
-                    ((PostMaterial3CardBaseViewHolder) holder).upvoteButton.setText(Utils.getNVotes(mShowAbsoluteNumberOfVotes, post.getScore() + post.getVoteType()));
+                    ((PostMaterial3CardBaseViewHolder) holder).scoreTextView.setText(Utils.getNVotes(mShowAbsoluteNumberOfVotes, post.getScore() + post.getVoteType()));
                 } else {
-                    ((PostMaterial3CardBaseViewHolder) holder).upvoteButton.setText(mActivity.getString(R.string.vote));
+                    ((PostMaterial3CardBaseViewHolder) holder).scoreTextView.setText(mActivity.getString(R.string.vote));
                 }
 
                 switch (post.getVoteType()) {
                     case 1:
                         //Upvoted
-                        ((PostMaterial3CardBaseViewHolder) holder).upvoteButton.setTextColor(mUpvotedColor);
                         ((PostMaterial3CardBaseViewHolder) holder).upvoteButton.setIconResource(R.drawable.ic_upvote_filled_24dp);
                         ((PostMaterial3CardBaseViewHolder) holder).upvoteButton.setIconTint(ColorStateList.valueOf(mUpvotedColor));
+                        ((PostMaterial3CardBaseViewHolder) holder).scoreTextView.setTextColor(mUpvotedColor);
                         break;
                     case -1:
                         //Downvoted
-                        ((PostMaterial3CardBaseViewHolder) holder).downvoteButton.setTextColor(mDownvotedColor);
                         ((PostMaterial3CardBaseViewHolder) holder).downvoteButton.setIconResource(R.drawable.ic_downvote_filled_24dp);
                         ((PostMaterial3CardBaseViewHolder) holder).downvoteButton.setIconTint(ColorStateList.valueOf(mDownvotedColor));
+                        ((PostMaterial3CardBaseViewHolder) holder).scoreTextView.setTextColor(mDownvotedColor);
                         break;
                 }
 
@@ -1773,8 +1775,8 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                 }
 
                 if (post.isArchived()) {
-                    ((PostMaterial3CardBaseViewHolder) holder).upvoteButton.setTextColor(mVoteAndReplyUnavailableVoteButtonColor);
                     ((PostMaterial3CardBaseViewHolder) holder).upvoteButton.setIconTint(ColorStateList.valueOf(mVoteAndReplyUnavailableVoteButtonColor));
+                    ((PostMaterial3CardBaseViewHolder) holder).scoreTextView.setTextColor(mVoteAndReplyUnavailableVoteButtonColor);
                     ((PostMaterial3CardBaseViewHolder) holder).downvoteButton.setIconTint(ColorStateList.valueOf(mVoteAndReplyUnavailableVoteButtonColor));
                 }
 
@@ -2334,9 +2336,9 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
             ((PostBaseViewHolder) holder).flairTextView.setVisibility(View.GONE);
             ((PostBaseViewHolder) holder).awardsTextView.setText("");
             ((PostBaseViewHolder) holder).awardsTextView.setVisibility(View.GONE);
-            ((PostBaseViewHolder) holder).upvoteButton.setTextColor(mPostIconAndInfoColor);
             ((PostBaseViewHolder) holder).upvoteButton.setIconResource(R.drawable.ic_upvote_24dp);
             ((PostBaseViewHolder) holder).upvoteButton.setIconTint(ColorStateList.valueOf(mPostIconAndInfoColor));
+            ((PostBaseViewHolder) holder).scoreTextView.setTextColor(mPostIconAndInfoColor);
             ((PostBaseViewHolder) holder).downvoteButton.setIconResource(R.drawable.ic_downvote_24dp);
             ((PostBaseViewHolder) holder).downvoteButton.setIconTint(ColorStateList.valueOf(mPostIconAndInfoColor));
         } else if (holder instanceof PostCompactBaseViewHolder) {
@@ -2360,9 +2362,9 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
             ((PostCompactBaseViewHolder) holder).imageView.setVisibility(View.GONE);
             ((PostCompactBaseViewHolder) holder).playButtonImageView.setVisibility(View.GONE);
             ((PostCompactBaseViewHolder) holder).noPreviewPostImageFrameLayout.setVisibility(View.GONE);
-            ((PostCompactBaseViewHolder) holder).upvoteButton.setTextColor(mPostIconAndInfoColor);
             ((PostCompactBaseViewHolder) holder).upvoteButton.setIconResource(R.drawable.ic_upvote_24dp);
             ((PostCompactBaseViewHolder) holder).upvoteButton.setIconTint(ColorStateList.valueOf(mPostIconAndInfoColor));
+            ((PostCompactBaseViewHolder) holder).scoreTextView.setTextColor(mPostIconAndInfoColor);
             ((PostCompactBaseViewHolder) holder).downvoteButton.setIconResource(R.drawable.ic_downvote_24dp);
             ((PostCompactBaseViewHolder) holder).downvoteButton.setIconTint(ColorStateList.valueOf(mPostIconAndInfoColor));
         } else if (holder instanceof PostGalleryViewHolder) {
@@ -2381,7 +2383,7 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
             ((PostGalleryBaseGalleryTypeViewHolder) holder).frameLayout.setVisibility(View.GONE);
             ((PostGalleryBaseGalleryTypeViewHolder) holder).noPreviewImageView.setVisibility(View.GONE);
         } else if (holder instanceof PostMaterial3CardBaseViewHolder) {
-            holder.itemView.setBackgroundTintList(ColorStateList.valueOf(mCardViewBackgroundColor));
+            holder.itemView.setBackgroundTintList(ColorStateList.valueOf(mFilledCardViewBackgroundColor));
             mGlide.clear(((PostMaterial3CardBaseViewHolder) holder).iconGifImageView);
             ((PostMaterial3CardBaseViewHolder) holder).titleTextView.setTextColor(mPostTitleColor);
             if (holder instanceof PostMaterial3CardBaseVideoAutoplayViewHolder) {
@@ -2418,10 +2420,9 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
 
             mGlide.clear(((PostMaterial3CardBaseViewHolder) holder).iconGifImageView);
             ((PostMaterial3CardBaseViewHolder) holder).stickiedPostImageView.setVisibility(View.GONE);
-            ((PostMaterial3CardBaseViewHolder) holder).upvoteButton.setTextColor(mPostIconAndInfoColor);
             ((PostMaterial3CardBaseViewHolder) holder).upvoteButton.setIconResource(R.drawable.ic_upvote_24dp);
             ((PostMaterial3CardBaseViewHolder) holder).upvoteButton.setIconTint(ColorStateList.valueOf(mPostIconAndInfoColor));
-            ((PostMaterial3CardBaseViewHolder) holder).downvoteButton.setTextColor(mPostIconAndInfoColor);
+            ((PostMaterial3CardBaseViewHolder) holder).scoreTextView.setTextColor(mPostIconAndInfoColor);
             ((PostMaterial3CardBaseViewHolder) holder).downvoteButton.setIconResource(R.drawable.ic_downvote_24dp);
             ((PostMaterial3CardBaseViewHolder) holder).downvoteButton.setIconTint(ColorStateList.valueOf(mPostIconAndInfoColor));
         }
@@ -2587,6 +2588,7 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
         CustomTextView awardsTextView;
         ConstraintLayout bottomConstraintLayout;
         MaterialButton upvoteButton;
+        TextView scoreTextView;
         MaterialButton downvoteButton;
         MaterialButton commentsCountButton;
         MaterialButton saveButton;
@@ -2615,8 +2617,8 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                          CustomTextView flairTextView,
                          CustomTextView awardsTextView,
                          ConstraintLayout bottomConstraintLayout,
-                         MaterialButtonToggleGroup voteButtonToggleGroup,
                          MaterialButton upvoteButton,
+                         TextView scoreTextView,
                          MaterialButton downvoteButton,
                          MaterialButton commentsCountButton,
                          MaterialButton saveButton,
@@ -2637,6 +2639,7 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
             this.awardsTextView = awardsTextView;
             this.bottomConstraintLayout = bottomConstraintLayout;
             this.upvoteButton = upvoteButton;
+            this.scoreTextView = scoreTextView;
             this.downvoteButton = downvoteButton;
             this.commentsCountButton = commentsCountButton;
             this.saveButton = saveButton;
@@ -2645,10 +2648,14 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
             if (mVoteButtonsOnTheRight) {
                 ConstraintSet constraintSet = new ConstraintSet();
                 constraintSet.clone(bottomConstraintLayout);
-                constraintSet.clear(voteButtonToggleGroup.getId(), ConstraintSet.START);
+                constraintSet.clear(upvoteButton.getId(), ConstraintSet.START);
+                constraintSet.clear(scoreTextView.getId(), ConstraintSet.START);
+                constraintSet.clear(downvoteButton.getId(), ConstraintSet.START);
                 constraintSet.clear(saveButton.getId(), ConstraintSet.END);
                 constraintSet.clear(shareButton.getId(), ConstraintSet.END);
-                constraintSet.connect(voteButtonToggleGroup.getId(), ConstraintSet.END, ConstraintSet.PARENT_ID, ConstraintSet.END);
+                constraintSet.connect(upvoteButton.getId(), ConstraintSet.END, scoreTextView.getId(), ConstraintSet.START);
+                constraintSet.connect(scoreTextView.getId(), ConstraintSet.END, downvoteButton.getId(), ConstraintSet.START);
+                constraintSet.connect(downvoteButton.getId(), ConstraintSet.END, ConstraintSet.PARENT_ID, ConstraintSet.END);
                 constraintSet.connect(commentsCountButton.getId(), ConstraintSet.START, saveButton.getId(), ConstraintSet.END);
                 constraintSet.connect(commentsCountButton.getId(), ConstraintSet.END, upvoteButton.getId(), ConstraintSet.START);
                 constraintSet.connect(saveButton.getId(), ConstraintSet.START, shareButton.getId(), ConstraintSet.END);
@@ -2672,7 +2679,7 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                 nsfwTextView.setTypeface(mActivity.typeface);
                 flairTextView.setTypeface(mActivity.typeface);
                 awardsTextView.setTypeface(mActivity.typeface);
-                upvoteButton.setTypeface(mActivity.typeface);
+                scoreTextView.setTypeface(mActivity.typeface);
                 commentsCountButton.setTypeface(mActivity.typeface);
             }
             if (mActivity.titleTypeface != null) {
@@ -2703,7 +2710,7 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
             lockedImageView.setColorFilter(mLockedIconTint, PorterDuff.Mode.SRC_IN);
             crosspostImageView.setColorFilter(mCrosspostIconTint, PorterDuff.Mode.SRC_IN);
             upvoteButton.setIconTint(ColorStateList.valueOf(mPostIconAndInfoColor));
-            upvoteButton.setTextColor(mPostIconAndInfoColor);
+            scoreTextView.setTextColor(mPostIconAndInfoColor);
             downvoteButton.setIconTint(ColorStateList.valueOf(mPostIconAndInfoColor));
             commentsCountButton.setTextColor(mPostIconAndInfoColor);
             commentsCountButton.setIcon(mCommentIcon);
@@ -2841,8 +2848,9 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                         return;
                     }
 
-                    int previousUpvoteButtonTextColor = upvoteButton.getCurrentTextColor();
-                    int previousDownvoteButtonTextColor = downvoteButton.getCurrentTextColor();
+                    ColorStateList previousUpvoteButtonIconTint = upvoteButton.getIconTint();
+                    ColorStateList previousDownvoteButtonIconTint = downvoteButton.getIconTint();
+                    int previousScoreTextViewColor = scoreTextView.getCurrentTextColor();
                     Drawable previousUpvoteButtonDrawable = upvoteButton.getIcon();
                     Drawable previousDownvoteButtonDrawable = downvoteButton.getIcon();
 
@@ -2856,20 +2864,20 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                         //Not upvoted before
                         post.setVoteType(1);
                         newVoteType = APIUtils.DIR_UPVOTE;
-                        upvoteButton.setTextColor(mUpvotedColor);
                         upvoteButton.setIconResource(R.drawable.ic_upvote_filled_24dp);
                         upvoteButton.setIconTint(ColorStateList.valueOf(mUpvotedColor));
+                        scoreTextView.setTextColor(mUpvotedColor);
                     } else {
                         //Upvoted before
                         post.setVoteType(0);
                         newVoteType = APIUtils.DIR_UNVOTE;
-                        upvoteButton.setTextColor(mPostIconAndInfoColor);
                         upvoteButton.setIconResource(R.drawable.ic_upvote_24dp);
                         upvoteButton.setIconTint(ColorStateList.valueOf(mPostIconAndInfoColor));
+                        scoreTextView.setTextColor(mPostIconAndInfoColor);
                     }
 
                     if (!mHideTheNumberOfVotes) {
-                        upvoteButton.setText(Utils.getNVotes(mShowAbsoluteNumberOfVotes, post.getScore() + post.getVoteType()));
+                        scoreTextView.setText(Utils.getNVotes(mShowAbsoluteNumberOfVotes, post.getScore() + post.getVoteType()));
                     }
 
                     VoteThing.voteThing(mActivity, mOauthRetrofit, mAccessToken, new VoteThing.VoteThingListener() {
@@ -2879,16 +2887,16 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                             if (newVoteType.equals(APIUtils.DIR_UPVOTE)) {
                                 post.setVoteType(1);
                                 if (currentPosition == position) {
-                                    upvoteButton.setTextColor(mUpvotedColor);
                                     upvoteButton.setIconResource(R.drawable.ic_upvote_filled_24dp);
                                     upvoteButton.setIconTint(ColorStateList.valueOf(mUpvotedColor));
+                                    scoreTextView.setTextColor(mUpvotedColor);
                                 }
                             } else {
                                 post.setVoteType(0);
                                 if (currentPosition == position) {
-                                    upvoteButton.setTextColor(mPostIconAndInfoColor);
                                     upvoteButton.setIconResource(R.drawable.ic_upvote_24dp);
                                     upvoteButton.setIconTint(ColorStateList.valueOf(mPostIconAndInfoColor));
+                                    scoreTextView.setTextColor(mPostIconAndInfoColor);
                                 }
                             }
 
@@ -2896,7 +2904,7 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                                 downvoteButton.setIconResource(R.drawable.ic_downvote_24dp);
                                 downvoteButton.setIconTint(ColorStateList.valueOf(mPostIconAndInfoColor));
                                 if (!mHideTheNumberOfVotes) {
-                                    upvoteButton.setText(Utils.getNVotes(mShowAbsoluteNumberOfVotes, post.getScore() + post.getVoteType()));
+                                    scoreTextView.setText(Utils.getNVotes(mShowAbsoluteNumberOfVotes, post.getScore() + post.getVoteType()));
                                 }
                             }
 
@@ -2909,19 +2917,23 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                             post.setVoteType(previousVoteType);
                             if (getBindingAdapterPosition() == position) {
                                 if (!mHideTheNumberOfVotes) {
-                                    upvoteButton.setText(Utils.getNVotes(mShowAbsoluteNumberOfVotes, post.getScore() + previousVoteType));
+                                    scoreTextView.setText(Utils.getNVotes(mShowAbsoluteNumberOfVotes, post.getScore() + previousVoteType));
                                 }
-                                upvoteButton.setTextColor(previousUpvoteButtonTextColor);
                                 upvoteButton.setIcon(previousUpvoteButtonDrawable);
-                                upvoteButton.setIconTint(ColorStateList.valueOf(previousUpvoteButtonTextColor));
+                                upvoteButton.setIconTint(previousUpvoteButtonIconTint);
+                                scoreTextView.setTextColor(previousScoreTextViewColor);
                                 downvoteButton.setIcon(previousDownvoteButtonDrawable);
-                                downvoteButton.setIconTint(ColorStateList.valueOf(previousDownvoteButtonTextColor));
+                                downvoteButton.setIconTint(previousDownvoteButtonIconTint);
                             }
 
                             EventBus.getDefault().post(new PostUpdateEventToPostDetailFragment(post));
                         }
                     }, post.getFullName(), newVoteType, getBindingAdapterPosition());
                 }
+            });
+
+            scoreTextView.setOnClickListener(view -> {
+                upvoteButton.performClick();
             });
 
             downvoteButton.setOnClickListener(view -> {
@@ -2941,15 +2953,15 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                         return;
                     }
 
-                    int previousUpvoteButtonTextColor = upvoteButton.getTextColors().getDefaultColor();
-                    int previousDownvoteButtonTextColor = downvoteButton.getTextColors().getDefaultColor();
+                    ColorStateList previousUpvoteButtonIconTint = upvoteButton.getIconTint();
+                    ColorStateList previousDownvoteButtonIconTint = downvoteButton.getIconTint();
+                    int previousScoreTextViewColor = scoreTextView.getCurrentTextColor();
                     Drawable previousUpvoteButtonDrawable = upvoteButton.getIcon();
                     Drawable previousDownvoteButtonDrawable = downvoteButton.getIcon();
 
                     int previousVoteType = post.getVoteType();
                     String newVoteType;
 
-                    upvoteButton.setTextColor(mPostIconAndInfoColor);
                     upvoteButton.setIconResource(R.drawable.ic_upvote_24dp);
                     upvoteButton.setIconTint(ColorStateList.valueOf(mPostIconAndInfoColor));
 
@@ -2959,16 +2971,18 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                         newVoteType = APIUtils.DIR_DOWNVOTE;
                         downvoteButton.setIconResource(R.drawable.ic_downvote_filled_24dp);
                         downvoteButton.setIconTint(ColorStateList.valueOf(mDownvotedColor));
+                        scoreTextView.setTextColor(mDownvotedColor);
                     } else {
                         //Downvoted before
                         post.setVoteType(0);
                         newVoteType = APIUtils.DIR_UNVOTE;
                         downvoteButton.setIconResource(R.drawable.ic_downvote_24dp);
                         downvoteButton.setIconTint(ColorStateList.valueOf(mPostIconAndInfoColor));
+                        scoreTextView.setTextColor(mPostIconAndInfoColor);
                     }
 
                     if (!mHideTheNumberOfVotes) {
-                        upvoteButton.setText(Utils.getNVotes(mShowAbsoluteNumberOfVotes, post.getScore() + post.getVoteType()));
+                        scoreTextView.setText(Utils.getNVotes(mShowAbsoluteNumberOfVotes, post.getScore() + post.getVoteType()));
                     }
 
                     VoteThing.voteThing(mActivity, mOauthRetrofit, mAccessToken, new VoteThing.VoteThingListener() {
@@ -2980,21 +2994,22 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                                 if (currentPosition == position) {
                                     downvoteButton.setIconResource(R.drawable.ic_downvote_filled_24dp);
                                     downvoteButton.setIconTint(ColorStateList.valueOf(mDownvotedColor));
+                                    scoreTextView.setTextColor(mDownvotedColor);
                                 }
                             } else {
                                 post.setVoteType(0);
                                 if (currentPosition == position) {
                                     downvoteButton.setIconResource(R.drawable.ic_downvote_24dp);
                                     downvoteButton.setIconTint(ColorStateList.valueOf(mPostIconAndInfoColor));
+                                    scoreTextView.setTextColor(mPostIconAndInfoColor);
                                 }
                             }
 
                             if (currentPosition == position) {
-                                upvoteButton.setTextColor(mPostIconAndInfoColor);
                                 upvoteButton.setIconResource(R.drawable.ic_upvote_24dp);
                                 upvoteButton.setIconTint(ColorStateList.valueOf(mPostIconAndInfoColor));
                                 if (!mHideTheNumberOfVotes) {
-                                    upvoteButton.setText(Utils.getNVotes(mShowAbsoluteNumberOfVotes, post.getScore() + post.getVoteType()));
+                                    scoreTextView.setText(Utils.getNVotes(mShowAbsoluteNumberOfVotes, post.getScore() + post.getVoteType()));
                                 }
                             }
 
@@ -3007,13 +3022,13 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                             post.setVoteType(previousVoteType);
                             if (getBindingAdapterPosition() == position) {
                                 if (!mHideTheNumberOfVotes) {
-                                    upvoteButton.setText(Utils.getNVotes(mShowAbsoluteNumberOfVotes, post.getScore() + previousVoteType));
+                                    scoreTextView.setText(Utils.getNVotes(mShowAbsoluteNumberOfVotes, post.getScore() + previousVoteType));
                                 }
-                                upvoteButton.setTextColor(previousUpvoteButtonTextColor);
                                 upvoteButton.setIcon(previousUpvoteButtonDrawable);
-                                upvoteButton.setIconTint(ColorStateList.valueOf(previousUpvoteButtonTextColor));
+                                upvoteButton.setIconTint(previousUpvoteButtonIconTint);
+                                scoreTextView.setTextColor(previousScoreTextViewColor);
                                 downvoteButton.setIcon(previousDownvoteButtonDrawable);
-                                downvoteButton.setIconTint(ColorStateList.valueOf(previousDownvoteButtonTextColor));
+                                downvoteButton.setIconTint(previousDownvoteButtonIconTint);
                             }
 
                             EventBus.getDefault().post(new PostUpdateEventToPostDetailFragment(post));
@@ -3126,8 +3141,8 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                          CustomTextView flairTextView,
                          CustomTextView awardsTextView,
                          ConstraintLayout bottomConstraintLayout,
-                         MaterialButtonToggleGroup voteButtonToggleGroup,
                          MaterialButton upvoteButton,
+                         TextView scoreTextView,
                          MaterialButton downvoteButton,
                          MaterialButton commentsCountButton,
                          MaterialButton saveButton,
@@ -3137,7 +3152,7 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
             setBaseView(iconGifImageView, subredditTextView, userTextView, stickiedPostImageView, postTimeTextView,
                     titleTextView, typeTextView, archivedImageView, lockedImageView, crosspostImageView,
                     nsfwTextView, spoilerTextView, flairTextView, awardsTextView, bottomConstraintLayout,
-                    voteButtonToggleGroup, upvoteButton, downvoteButton, commentsCountButton, saveButton, shareButton);
+                    upvoteButton, scoreTextView, downvoteButton, commentsCountButton, saveButton, shareButton);
         }
     }
 
@@ -3167,6 +3182,14 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                                         ImageView stickiedPostImageView,
                                         TextView postTimeTextView,
                                         TextView titleTextView,
+                                        CustomTextView typeTextView,
+                                        ImageView archivedImageView,
+                                        ImageView lockedImageView,
+                                        ImageView crosspostImageView,
+                                        CustomTextView nsfwTextView,
+                                        CustomTextView spoilerTextView,
+                                        CustomTextView flairTextView,
+                                        CustomTextView awardsTextView,
                                         AspectRatioFrameLayout aspectRatioFrameLayout,
                                         GifImageView previewImageView,
                                         ImageView errorLoadingGfycatImageView,
@@ -3177,8 +3200,8 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                                         ImageView playButton,
                                         DefaultTimeBar progressBar,
                                         ConstraintLayout bottomConstraintLayout,
-                                        MaterialButtonToggleGroup voteButtonToggleGroup,
                                         MaterialButton upvoteButton,
+                                        TextView scoreTextView,
                                         MaterialButton downvoteButton,
                                         MaterialButton commentsCountButton,
                                         MaterialButton saveButton,
@@ -3200,8 +3223,8 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                     flairTextView,
                     awardsTextView,
                     bottomConstraintLayout,
-                    voteButtonToggleGroup,
                     upvoteButton,
+                    scoreTextView,
                     downvoteButton,
                     commentsCountButton,
                     saveButton,
@@ -3447,6 +3470,14 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                     binding.stickiedPostImageViewItemPostVideoTypeAutoplay,
                     binding.postTimeTextViewItemPostVideoTypeAutoplay,
                     binding.titleTextViewItemPostVideoTypeAutoplay,
+                    binding.typeTextViewItemPostVideoTypeAutoplay,
+                    binding.archivedImageViewItemPostVideoTypeAutoplay,
+                    binding.lockedImageViewItemPostVideoTypeAutoplay,
+                    binding.crosspostImageViewItemPostVideoTypeAutoplay,
+                    binding.nsfwTextViewItemPostVideoTypeAutoplay,
+                    binding.spoilerCustomTextViewItemPostVideoTypeAutoplay,
+                    binding.flairCustomTextViewItemPostVideoTypeAutoplay,
+                    binding.awardsTextViewItemPostVideoTypeAutoplay,
                     binding.aspectRatioFrameLayoutItemPostVideoTypeAutoplay,
                     binding.previewImageViewItemPostVideoTypeAutoplay,
                     binding.errorLoadingGfycatImageViewItemPostVideoTypeAutoplay,
@@ -3457,8 +3488,8 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                     binding.getRoot().findViewById(R.id.exo_play),
                     binding.getRoot().findViewById(R.id.exo_progress),
                     binding.bottomConstraintLayoutItemPostVideoTypeAutoplay,
-                    binding.voteButtonToggleItemPostVideoTypeAutoplay,
                     binding.upvoteButtonItemPostVideoTypeAutoplay,
+                    binding.scoreTextViewItemPostVideoTypeAutoplay,
                     binding.downvoteButtonItemPostVideoTypeAutoplay,
                     binding.commentsCountButtonItemPostVideoTypeAutoplay,
                     binding.saveButtonItemPostVideoTypeAutoplay,
@@ -3475,6 +3506,14 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                     binding.stickiedPostImageViewItemPostVideoTypeAutoplay,
                     binding.postTimeTextViewItemPostVideoTypeAutoplay,
                     binding.titleTextViewItemPostVideoTypeAutoplay,
+                    binding.typeTextViewItemPostVideoTypeAutoplay,
+                    binding.archivedImageViewItemPostVideoTypeAutoplay,
+                    binding.lockedImageViewItemPostVideoTypeAutoplay,
+                    binding.crosspostImageViewItemPostVideoTypeAutoplay,
+                    binding.nsfwTextViewItemPostVideoTypeAutoplay,
+                    binding.spoilerCustomTextViewItemPostVideoTypeAutoplay,
+                    binding.flairCustomTextViewItemPostVideoTypeAutoplay,
+                    binding.awardsTextViewItemPostVideoTypeAutoplay,
                     binding.aspectRatioFrameLayoutItemPostVideoTypeAutoplay,
                     binding.previewImageViewItemPostVideoTypeAutoplay,
                     binding.errorLoadingGfycatImageViewItemPostVideoTypeAutoplay,
@@ -3485,8 +3524,8 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                     binding.getRoot().findViewById(R.id.exo_play),
                     binding.getRoot().findViewById(R.id.exo_progress),
                     binding.bottomConstraintLayoutItemPostVideoTypeAutoplay,
-                    binding.voteButtonToggleItemPostVideoTypeAutoplay,
                     binding.upvoteButtonItemPostVideoTypeAutoplay,
+                    binding.scoreTextViewItemPostVideoTypeAutoplay,
                     binding.downvoteButtonItemPostVideoTypeAutoplay,
                     binding.commentsCountButtonItemPostVideoTypeAutoplay,
                     binding.saveButtonItemPostVideoTypeAutoplay,
@@ -3517,8 +3556,8 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                     binding.flairCustomTextViewItemPostWithPreview,
                     binding.awardsTextViewItemPostWithPreview,
                     binding.bottomConstraintLayoutItemPostWithPreview,
-                    binding.voteButtonToggleItemPostWithPreview,
                     binding.upvoteButtonItemPostWithPreview,
+                    binding.scoreTextViewItemPostWithPreview,
                     binding.downvoteButtonItemPostWithPreview,
                     binding.commentsCountButtonItemPostWithPreview,
                     binding.saveButtonItemPostWithPreview,
@@ -3604,8 +3643,8 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                                       CustomTextView imageIndexTextView,
                                       ImageView noPreviewImageView,
                                       ConstraintLayout bottomConstraintLayout,
-                                      MaterialButtonToggleGroup voteButtonToggleGroup,
                                       MaterialButton upvoteButton,
+                                      TextView scoreTextView,
                                       MaterialButton downvoteButton,
                                       MaterialButton commentsCountButton,
                                       MaterialButton saveButton,
@@ -3628,8 +3667,8 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                     flairTextView,
                     awardsTextView,
                     bottomConstraintLayout,
-                    voteButtonToggleGroup,
                     upvoteButton,
+                    scoreTextView,
                     downvoteButton,
                     commentsCountButton,
                     saveButton,
@@ -3780,8 +3819,8 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                     binding.imageIndexTextViewItemPostGalleryType,
                     binding.noPreviewImageViewItemPostGalleryType,
                     binding.bottomConstraintLayoutItemPostGalleryType,
-                    binding.voteButtonToggleItemPostGalleryType,
                     binding.upvoteButtonItemPostGalleryType,
+                    binding.scoreTextViewItemPostGalleryType,
                     binding.downvoteButtonItemPostGalleryType,
                     binding.commentsCountButtonItemPostGalleryType,
                     binding.saveButtonItemPostGalleryType,
@@ -3813,8 +3852,8 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                     binding.flairCustomTextViewItemPostTextType,
                     binding.awardsTextViewItemPostTextType,
                     binding.bottomConstraintLayoutItemPostTextType,
-                    binding.voteButtonToggleItemPostTextType,
                     binding.upvoteButtonItemPostTextType,
+                    binding.scoreTextViewItemPostTextType,
                     binding.downvoteButtonItemPostTextType,
                     binding.commentsCountButtonItemPostTextType,
                     binding.saveButtonItemPostTextType,
@@ -3852,6 +3891,7 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
         Barrier imageBarrier;
         ConstraintLayout bottomConstraintLayout;
         MaterialButton upvoteButton;
+        TextView scoreTextView;
         MaterialButton downvoteButton;
         MaterialButton commentsCountButton;
         MaterialButton saveButton;
@@ -3887,8 +3927,8 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                          ImageView noPreviewLinkImageView,
                          Barrier imageBarrier,
                          ConstraintLayout bottomConstraintLayout,
-                         MaterialButtonToggleGroup voteButtonToggleGroup,
                          MaterialButton upvoteButton,
+                         TextView scoreTextView,
                          MaterialButton downvoteButton,
                          MaterialButton commentsCountButton,
                          MaterialButton saveButton,
@@ -3918,6 +3958,7 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
             this.imageBarrier = imageBarrier;
             this.bottomConstraintLayout = bottomConstraintLayout;
             this.upvoteButton = upvoteButton;
+            this.scoreTextView = scoreTextView;
             this.downvoteButton = downvoteButton;
             this.commentsCountButton = commentsCountButton;
             this.saveButton = saveButton;
@@ -3927,10 +3968,14 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
             if (mVoteButtonsOnTheRight) {
                 ConstraintSet constraintSet = new ConstraintSet();
                 constraintSet.clone(bottomConstraintLayout);
-                constraintSet.clear(voteButtonToggleGroup.getId(), ConstraintSet.START);
+                constraintSet.clear(upvoteButton.getId(), ConstraintSet.START);
+                constraintSet.clear(scoreTextView.getId(), ConstraintSet.START);
+                constraintSet.clear(downvoteButton.getId(), ConstraintSet.START);
                 constraintSet.clear(saveButton.getId(), ConstraintSet.END);
                 constraintSet.clear(shareButton.getId(), ConstraintSet.END);
-                constraintSet.connect(voteButtonToggleGroup.getId(), ConstraintSet.END, ConstraintSet.PARENT_ID, ConstraintSet.END);
+                constraintSet.connect(upvoteButton.getId(), ConstraintSet.END, scoreTextView.getId(), ConstraintSet.START);
+                constraintSet.connect(scoreTextView.getId(), ConstraintSet.END, downvoteButton.getId(), ConstraintSet.START);
+                constraintSet.connect(downvoteButton.getId(), ConstraintSet.END, ConstraintSet.PARENT_ID, ConstraintSet.END);
                 constraintSet.connect(commentsCountButton.getId(), ConstraintSet.START, saveButton.getId(), ConstraintSet.END);
                 constraintSet.connect(commentsCountButton.getId(), ConstraintSet.END, upvoteButton.getId(), ConstraintSet.START);
                 constraintSet.connect(saveButton.getId(), ConstraintSet.START, shareButton.getId(), ConstraintSet.END);
@@ -3988,7 +4033,7 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
             noPreviewLinkImageView.setBackgroundColor(mNoPreviewPostTypeBackgroundColor);
             noPreviewLinkImageView.setColorFilter(mNoPreviewPostTypeIconTint, android.graphics.PorterDuff.Mode.SRC_IN);
             upvoteButton.setIconTint(ColorStateList.valueOf(mPostIconAndInfoColor));
-            upvoteButton.setTextColor(mPostIconAndInfoColor);
+            scoreTextView.setTextColor(mPostIconAndInfoColor);
             downvoteButton.setIconTint(ColorStateList.valueOf(mPostIconAndInfoColor));
             commentsCountButton.setTextColor(mPostIconAndInfoColor);
             commentsCountButton.setIcon(mCommentIcon);
@@ -4128,8 +4173,9 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                         return;
                     }
 
-                    int previousUpvoteButtonTextColor = upvoteButton.getCurrentTextColor();
-                    int previousDownvoteButtonTextColor = downvoteButton.getCurrentTextColor();
+                    ColorStateList previousUpvoteButtonIconTint = upvoteButton.getIconTint();
+                    ColorStateList previousDownvoteButtonIconTint = downvoteButton.getIconTint();
+                    int previousScoreTextViewColor = scoreTextView.getCurrentTextColor();
                     Drawable previousUpvoteButtonDrawable = upvoteButton.getIcon();
                     Drawable previousDownvoteButtonDrawable = downvoteButton.getIcon();
 
@@ -4143,20 +4189,20 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                         //Not upvoted before
                         post.setVoteType(1);
                         newVoteType = APIUtils.DIR_UPVOTE;
-                        upvoteButton.setTextColor(mUpvotedColor);
                         upvoteButton.setIconResource(R.drawable.ic_upvote_filled_24dp);
                         upvoteButton.setIconTint(ColorStateList.valueOf(mUpvotedColor));
+                        scoreTextView.setTextColor(mUpvotedColor);
                     } else {
                         //Upvoted before
                         post.setVoteType(0);
                         newVoteType = APIUtils.DIR_UNVOTE;
-                        upvoteButton.setTextColor(mPostIconAndInfoColor);
                         upvoteButton.setIconResource(R.drawable.ic_upvote_24dp);
                         upvoteButton.setIconTint(ColorStateList.valueOf(mPostIconAndInfoColor));
+                        scoreTextView.setTextColor(mPostIconAndInfoColor);
                     }
 
                     if (!mHideTheNumberOfVotes) {
-                        upvoteButton.setText(Utils.getNVotes(mShowAbsoluteNumberOfVotes, post.getScore() + post.getVoteType()));
+                        scoreTextView.setText(Utils.getNVotes(mShowAbsoluteNumberOfVotes, post.getScore() + post.getVoteType()));
                     }
 
                     VoteThing.voteThing(mActivity, mOauthRetrofit, mAccessToken, new VoteThing.VoteThingListener() {
@@ -4166,16 +4212,16 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                             if (newVoteType.equals(APIUtils.DIR_UPVOTE)) {
                                 post.setVoteType(1);
                                 if (currentPosition == position) {
-                                    upvoteButton.setTextColor(mUpvotedColor);
                                     upvoteButton.setIconResource(R.drawable.ic_upvote_filled_24dp);
                                     upvoteButton.setIconTint(ColorStateList.valueOf(mUpvotedColor));
+                                    scoreTextView.setTextColor(mUpvotedColor);
                                 }
                             } else {
                                 post.setVoteType(0);
                                 if (currentPosition == position) {
-                                    upvoteButton.setTextColor(mPostIconAndInfoColor);
                                     upvoteButton.setIconResource(R.drawable.ic_upvote_24dp);
                                     upvoteButton.setIconTint(ColorStateList.valueOf(mPostIconAndInfoColor));
+                                    scoreTextView.setTextColor(mPostIconAndInfoColor);
                                 }
                             }
 
@@ -4183,7 +4229,7 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                                 downvoteButton.setIconResource(R.drawable.ic_downvote_24dp);
                                 downvoteButton.setIconTint(ColorStateList.valueOf(mPostIconAndInfoColor));
                                 if (!mHideTheNumberOfVotes) {
-                                    upvoteButton.setText(Utils.getNVotes(mShowAbsoluteNumberOfVotes, post.getScore() + post.getVoteType()));
+                                    scoreTextView.setText(Utils.getNVotes(mShowAbsoluteNumberOfVotes, post.getScore() + post.getVoteType()));
                                 }
                             }
 
@@ -4196,13 +4242,13 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                             post.setVoteType(previousVoteType);
                             if (getBindingAdapterPosition() == position) {
                                 if (!mHideTheNumberOfVotes) {
-                                    upvoteButton.setText(Utils.getNVotes(mShowAbsoluteNumberOfVotes, post.getScore() + previousVoteType));
+                                    scoreTextView.setText(Utils.getNVotes(mShowAbsoluteNumberOfVotes, post.getScore() + previousVoteType));
                                 }
-                                upvoteButton.setTextColor(previousUpvoteButtonTextColor);
                                 upvoteButton.setIcon(previousUpvoteButtonDrawable);
-                                upvoteButton.setIconTint(ColorStateList.valueOf(previousUpvoteButtonTextColor));
+                                upvoteButton.setIconTint(previousUpvoteButtonIconTint);
+                                scoreTextView.setTextColor(previousScoreTextViewColor);
                                 downvoteButton.setIcon(previousDownvoteButtonDrawable);
-                                downvoteButton.setIconTint(ColorStateList.valueOf(previousDownvoteButtonTextColor));
+                                downvoteButton.setIconTint(previousDownvoteButtonIconTint);
                             }
 
                             EventBus.getDefault().post(new PostUpdateEventToPostDetailFragment(post));
@@ -4228,15 +4274,15 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                         return;
                     }
 
-                    int previousUpvoteButtonTextColor = upvoteButton.getTextColors().getDefaultColor();
-                    int previousDownvoteButtonTextColor = downvoteButton.getTextColors().getDefaultColor();
+                    ColorStateList previousUpvoteButtonIconTint = upvoteButton.getIconTint();
+                    ColorStateList previousDownvoteButtonIconTint = downvoteButton.getIconTint();
+                    int previousScoreTextViewColor = scoreTextView.getCurrentTextColor();
                     Drawable previousUpvoteButtonDrawable = upvoteButton.getIcon();
                     Drawable previousDownvoteButtonDrawable = downvoteButton.getIcon();
 
                     int previousVoteType = post.getVoteType();
                     String newVoteType;
 
-                    upvoteButton.setTextColor(mPostIconAndInfoColor);
                     upvoteButton.setIconResource(R.drawable.ic_upvote_24dp);
                     upvoteButton.setIconTint(ColorStateList.valueOf(mPostIconAndInfoColor));
 
@@ -4246,16 +4292,18 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                         newVoteType = APIUtils.DIR_DOWNVOTE;
                         downvoteButton.setIconResource(R.drawable.ic_downvote_filled_24dp);
                         downvoteButton.setIconTint(ColorStateList.valueOf(mDownvotedColor));
+                        scoreTextView.setTextColor(mDownvotedColor);
                     } else {
                         //Downvoted before
                         post.setVoteType(0);
                         newVoteType = APIUtils.DIR_UNVOTE;
                         downvoteButton.setIconResource(R.drawable.ic_downvote_24dp);
                         downvoteButton.setIconTint(ColorStateList.valueOf(mPostIconAndInfoColor));
+                        scoreTextView.setTextColor(mPostIconAndInfoColor);
                     }
 
                     if (!mHideTheNumberOfVotes) {
-                        upvoteButton.setText(Utils.getNVotes(mShowAbsoluteNumberOfVotes, post.getScore() + post.getVoteType()));
+                        scoreTextView.setText(Utils.getNVotes(mShowAbsoluteNumberOfVotes, post.getScore() + post.getVoteType()));
                     }
 
                     VoteThing.voteThing(mActivity, mOauthRetrofit, mAccessToken, new VoteThing.VoteThingListener() {
@@ -4267,21 +4315,22 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                                 if (currentPosition == position) {
                                     downvoteButton.setIconResource(R.drawable.ic_downvote_filled_24dp);
                                     downvoteButton.setIconTint(ColorStateList.valueOf(mDownvotedColor));
+                                    scoreTextView.setTextColor(mDownvotedColor);
                                 }
                             } else {
                                 post.setVoteType(0);
                                 if (currentPosition == position) {
                                     downvoteButton.setIconResource(R.drawable.ic_downvote_24dp);
                                     downvoteButton.setIconTint(ColorStateList.valueOf(mPostIconAndInfoColor));
+                                    scoreTextView.setTextColor(mPostIconAndInfoColor);
                                 }
                             }
 
                             if (currentPosition == position) {
-                                upvoteButton.setTextColor(mPostIconAndInfoColor);
                                 upvoteButton.setIconResource(R.drawable.ic_upvote_24dp);
                                 upvoteButton.setIconTint(ColorStateList.valueOf(mPostIconAndInfoColor));
                                 if (!mHideTheNumberOfVotes) {
-                                    upvoteButton.setText(Utils.getNVotes(mShowAbsoluteNumberOfVotes, post.getScore() + post.getVoteType()));
+                                    scoreTextView.setText(Utils.getNVotes(mShowAbsoluteNumberOfVotes, post.getScore() + post.getVoteType()));
                                 }
                             }
 
@@ -4294,13 +4343,13 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                             post.setVoteType(previousVoteType);
                             if (getBindingAdapterPosition() == position) {
                                 if (!mHideTheNumberOfVotes) {
-                                    upvoteButton.setText(Utils.getNVotes(mShowAbsoluteNumberOfVotes, post.getScore() + previousVoteType));
+                                    scoreTextView.setText(Utils.getNVotes(mShowAbsoluteNumberOfVotes, post.getScore() + previousVoteType));
                                 }
-                                upvoteButton.setTextColor(previousUpvoteButtonTextColor);
                                 upvoteButton.setIcon(previousUpvoteButtonDrawable);
-                                upvoteButton.setIconTint(ColorStateList.valueOf(previousUpvoteButtonTextColor));
+                                upvoteButton.setIconTint(previousUpvoteButtonIconTint);
+                                scoreTextView.setTextColor(previousScoreTextViewColor);
                                 downvoteButton.setIcon(previousDownvoteButtonDrawable);
-                                downvoteButton.setIconTint(ColorStateList.valueOf(previousDownvoteButtonTextColor));
+                                downvoteButton.setIconTint(previousDownvoteButtonIconTint);
                             }
 
                             EventBus.getDefault().post(new PostUpdateEventToPostDetailFragment(post));
@@ -4440,8 +4489,8 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                     binding.imageViewNoPreviewLinkItemPostCompact,
                     binding.barrier2,
                     binding.bottomConstraintLayoutItemPostCompact,
-                    binding.voteButtonToggleItemPostCompact,
                     binding.upvoteButtonItemPostCompact,
+                    binding.scoreTextViewItemPostCompact,
                     binding.downvoteButtonItemPostCompact,
                     binding.commentsCountButtonItemPostCompact,
                     binding.saveButtonItemPostCompact,
@@ -4477,8 +4526,8 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                     binding.imageViewNoPreviewLinkItemPostCompactRightThumbnail,
                     binding.barrier2,
                     binding.bottomConstraintLayoutItemPostCompactRightThumbnail,
-                    binding.voteButtonToggleItemPostCompactRightThumbnail,
                     binding.upvoteButtonItemPostCompactRightThumbnail,
+                    binding.scoreTextViewItemPostCompactRightThumbnail,
                     binding.downvoteButtonItemPostCompactRightThumbnail,
                     binding.commentsCountButtonItemPostCompactRightThumbnail,
                     binding.saveButtonItemPostCompactRightThumbnail,
@@ -4788,6 +4837,14 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                                          ImageView stickiedPostImageView,
                                          TextView postTimeTextView,
                                          TextView titleTextView,
+                                             CustomTextView typeTextView,
+                                             ImageView archivedImageView,
+                                             ImageView lockedImageView,
+                                             ImageView crosspostImageView,
+                                             CustomTextView nsfwTextView,
+                                             CustomTextView spoilerTextView,
+                                             CustomTextView flairTextView,
+                                             CustomTextView awardsTextView,
                                          AspectRatioFrameLayout aspectRatioFrameLayout,
                                          GifImageView previewImageView,
                                          ImageView errorLoadingGfycatImageView,
@@ -4798,8 +4855,8 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                                          ImageView playButton,
                                          DefaultTimeBar progressBar,
                                          ConstraintLayout bottomConstraintLayout,
-                                         MaterialButtonToggleGroup voteButtonToggleGroup,
                                          MaterialButton upvoteButton,
+                                         TextView scoreTextView,
                                          MaterialButton downvoteButton,
                                          MaterialButton commentsCountButton,
                                          MaterialButton saveButton,
@@ -4822,8 +4879,8 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                     flairTextView,
                     awardsTextView,
                     bottomConstraintLayout,
-                    voteButtonToggleGroup,
                     upvoteButton,
+                    scoreTextView,
                     downvoteButton,
                     commentsCountButton,
                     saveButton,
@@ -5070,6 +5127,14 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                     binding.stickiedPostImageViewItemPostCard2VideoAutoplay,
                     binding.postTimeTextViewItemPostCard2VideoAutoplay,
                     binding.titleTextViewItemPostCard2VideoAutoplay,
+                    binding.typeTextViewItemPostCard2VideoAutoplay,
+                    binding.archivedImageViewItemPostCard2VideoAutoplay,
+                    binding.lockedImageViewItemPostCard2VideoAutoplay,
+                    binding.crosspostImageViewItemPostCard2VideoAutoplay,
+                    binding.nsfwTextViewItemPostCard2VideoAutoplay,
+                    binding.spoilerCustomTextViewItemPostCard2VideoAutoplay,
+                    binding.flairCustomTextViewItemPostCard2VideoAutoplay,
+                    binding.awardsTextViewItemPostCard2VideoAutoplay,
                     binding.aspectRatioFrameLayoutItemPostCard2VideoAutoplay,
                     binding.previewImageViewItemPostCard2VideoAutoplay,
                     binding.errorLoadingGfycatImageViewItemPostCard2VideoAutoplay,
@@ -5080,8 +5145,8 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                     binding.getRoot().findViewById(R.id.exo_play),
                     binding.getRoot().findViewById(R.id.exo_progress),
                     binding.bottomConstraintLayoutItemPostCard2VideoAutoplay,
-                    binding.voteButtonToggleItemPostCard2VideoAutoplay,
                     binding.upvoteButtonItemPostCard2VideoAutoplay,
+                    binding.scoreTextViewItemPostCard2VideoAutoplay,
                     binding.downvoteButtonItemPostCard2VideoAutoplay,
                     binding.commentsCountButtonItemPostCard2VideoAutoplay,
                     binding.saveButtonItemPostCard2VideoAutoplay,
@@ -5099,6 +5164,14 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                     binding.stickiedPostImageViewItemPostCard2VideoAutoplay,
                     binding.postTimeTextViewItemPostCard2VideoAutoplay,
                     binding.titleTextViewItemPostCard2VideoAutoplay,
+                    binding.typeTextViewItemPostCard2VideoAutoplay,
+                    binding.archivedImageViewItemPostCard2VideoAutoplay,
+                    binding.lockedImageViewItemPostCard2VideoAutoplay,
+                    binding.crosspostImageViewItemPostCard2VideoAutoplay,
+                    binding.nsfwTextViewItemPostCard2VideoAutoplay,
+                    binding.spoilerCustomTextViewItemPostCard2VideoAutoplay,
+                    binding.flairCustomTextViewItemPostCard2VideoAutoplay,
+                    binding.awardsTextViewItemPostCard2VideoAutoplay,
                     binding.aspectRatioFrameLayoutItemPostCard2VideoAutoplay,
                     binding.previewImageViewItemPostCard2VideoAutoplay,
                     binding.errorLoadingGfycatImageViewItemPostCard2VideoAutoplay,
@@ -5109,8 +5182,8 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                     binding.getRoot().findViewById(R.id.exo_play),
                     binding.getRoot().findViewById(R.id.exo_progress),
                     binding.bottomConstraintLayoutItemPostCard2VideoAutoplay,
-                    binding.voteButtonToggleItemPostCard2VideoAutoplay,
                     binding.upvoteButtonItemPostCard2VideoAutoplay,
+                    binding.scoreTextViewItemPostCard2VideoAutoplay,
                     binding.downvoteButtonItemPostCard2VideoAutoplay,
                     binding.commentsCountButtonItemPostCard2VideoAutoplay,
                     binding.saveButtonItemPostCard2VideoAutoplay,
@@ -5142,8 +5215,8 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                     binding.flairCustomTextViewItemPostCard2WithPreview,
                     binding.awardsTextViewItemPostCard2WithPreview,
                     binding.bottomConstraintLayoutItemPostCard2WithPreview,
-                    binding.voteButtonToggleItemPostCard2WithPreview,
                     binding.upvoteButtonItemPostCard2WithPreview,
+                    binding.scoreTextViewItemPostCard2WithPreview,
                     binding.downvoteButtonItemPostCard2WithPreview,
                     binding.commentsCountButtonItemPostCard2WithPreview,
                     binding.saveButtonItemPostCard2WithPreview,
@@ -5225,8 +5298,8 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                     binding.imageIndexTextViewItemPostCard2GalleryType,
                     binding.noPreviewImageViewItemPostCard2GalleryType,
                     binding.bottomConstraintLayoutItemPostCard2GalleryType,
-                    binding.voteButtonToggleItemPostCard2GalleryType,
                     binding.upvoteButtonItemPostCard2GalleryType,
+                    binding.scoreTextViewItemPostCard2GalleryType,
                     binding.downvoteButtonItemPostCard2GalleryType,
                     binding.commentsCountButtonItemPostCard2GalleryType,
                     binding.saveButtonItemPostCard2GalleryType,
@@ -5260,8 +5333,8 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                     binding.flairCustomTextViewItemPostCard2Text,
                     binding.awardsTextViewItemPostCard2Text,
                     binding.bottomConstraintLayoutItemPostCard2Text,
-                    binding.voteButtonToggleItemPostCard2Text,
                     binding.upvoteButtonItemPostCard2Text,
+                    binding.scoreTextViewItemPostCard2Text,
                     binding.downvoteButtonItemPostCard2Text,
                     binding.commentsCountButtonItemPostCard2Text,
                     binding.saveButtonItemPostCard2Text,
@@ -5284,8 +5357,8 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
         TextView postTimeTextView;
         TextView titleTextView;
         ConstraintLayout bottomConstraintLayout;
-        MaterialButtonToggleGroup voteButtonToggleGroup;
         MaterialButton upvoteButton;
+        TextView scoreTextView;
         MaterialButton downvoteButton;
         MaterialButton commentsCountButton;
         MaterialButton saveButton;
@@ -5304,8 +5377,8 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                          TextView postTimeTextView,
                          TextView titleTextView,
                          ConstraintLayout bottomConstraintLayout,
-                         MaterialButtonToggleGroup voteButtonToggleGroup,
                          MaterialButton upvoteButton,
+                         TextView scoreTextView,
                          MaterialButton downvoteButton,
                          MaterialButton commentsCountButton,
                          MaterialButton saveButton,
@@ -5317,8 +5390,8 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
             this.postTimeTextView = postTimeTextView;
             this.titleTextView = titleTextView;
             this.bottomConstraintLayout = bottomConstraintLayout;
-            this.voteButtonToggleGroup = voteButtonToggleGroup;
             this.upvoteButton = upvoteButton;
+            this.scoreTextView = scoreTextView;
             this.downvoteButton = downvoteButton;
             this.commentsCountButton = commentsCountButton;
             this.saveButton = saveButton;
@@ -5327,19 +5400,23 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
             if (mVoteButtonsOnTheRight) {
                 ConstraintSet constraintSet = new ConstraintSet();
                 constraintSet.clone(bottomConstraintLayout);
-                constraintSet.clear(voteButtonToggleGroup.getId(), ConstraintSet.START);
-                constraintSet.clear(saveButton.getId(), ConstraintSet.START);
-                constraintSet.clear(shareButton.getId(), ConstraintSet.START);
-                constraintSet.connect(voteButtonToggleGroup.getId(), ConstraintSet.END, ConstraintSet.PARENT_ID, ConstraintSet.END);
-                constraintSet.connect(commentsCountButton.getId(), ConstraintSet.START, ConstraintSet.PARENT_ID, ConstraintSet.START);
-                constraintSet.connect(commentsCountButton.getId(), ConstraintSet.END, shareButton.getId(), ConstraintSet.START);
-                constraintSet.connect(saveButton.getId(), ConstraintSet.END, voteButtonToggleGroup.getId(), ConstraintSet.START);
-                constraintSet.connect(shareButton.getId(), ConstraintSet.END, saveButton.getId(), ConstraintSet.START);
+                constraintSet.clear(upvoteButton.getId(), ConstraintSet.START);
+                constraintSet.clear(scoreTextView.getId(), ConstraintSet.START);
+                constraintSet.clear(downvoteButton.getId(), ConstraintSet.START);
+                constraintSet.clear(saveButton.getId(), ConstraintSet.END);
+                constraintSet.clear(shareButton.getId(), ConstraintSet.END);
+                constraintSet.connect(upvoteButton.getId(), ConstraintSet.END, scoreTextView.getId(), ConstraintSet.START);
+                constraintSet.connect(scoreTextView.getId(), ConstraintSet.END, downvoteButton.getId(), ConstraintSet.START);
+                constraintSet.connect(downvoteButton.getId(), ConstraintSet.END, ConstraintSet.PARENT_ID, ConstraintSet.END);
+                constraintSet.connect(commentsCountButton.getId(), ConstraintSet.START, saveButton.getId(), ConstraintSet.END);
+                constraintSet.connect(commentsCountButton.getId(), ConstraintSet.END, upvoteButton.getId(), ConstraintSet.START);
+                constraintSet.connect(saveButton.getId(), ConstraintSet.START, shareButton.getId(), ConstraintSet.END);
+                constraintSet.connect(shareButton.getId(), ConstraintSet.START, ConstraintSet.PARENT_ID, ConstraintSet.START);
                 constraintSet.setHorizontalBias(commentsCountButton.getId(), 0);
                 constraintSet.applyTo(bottomConstraintLayout);
             }
 
-            itemView.setBackgroundTintList(ColorStateList.valueOf(mCardViewBackgroundColor));
+            itemView.setBackgroundTintList(ColorStateList.valueOf(mFilledCardViewBackgroundColor));
 
             if (mActivity.typeface != null) {
                 subredditTextView.setTypeface(mActivity.typeface);
@@ -5461,15 +5538,15 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                         return;
                     }
 
-                    int previousUpvoteButtonTextColor = upvoteButton.getCurrentTextColor();
-                    int previousDownvoteButtonTextColor = downvoteButton.getCurrentTextColor();
+                    ColorStateList previousUpvoteButtonIconTint = upvoteButton.getIconTint();
+                    ColorStateList previousDownvoteButtonIconTint = downvoteButton.getIconTint();
+                    int previousScoreTextViewColor = scoreTextView.getCurrentTextColor();
                     Drawable previousUpvoteButtonDrawable = upvoteButton.getIcon();
                     Drawable previousDownvoteButtonDrawable = downvoteButton.getIcon();
 
                     int previousVoteType = post.getVoteType();
                     String newVoteType;
 
-                    downvoteButton.setTextColor(mPostIconAndInfoColor);
                     downvoteButton.setIconResource(R.drawable.ic_downvote_24dp);
                     downvoteButton.setIconTint(ColorStateList.valueOf(mPostIconAndInfoColor));
 
@@ -5477,20 +5554,20 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                         //Not upvoted before
                         post.setVoteType(1);
                         newVoteType = APIUtils.DIR_UPVOTE;
-                        upvoteButton.setTextColor(mUpvotedColor);
                         upvoteButton.setIconResource(R.drawable.ic_upvote_filled_24dp);
                         upvoteButton.setIconTint(ColorStateList.valueOf(mUpvotedColor));
+                        scoreTextView.setTextColor(mUpvotedColor);
                     } else {
                         //Upvoted before
                         post.setVoteType(0);
                         newVoteType = APIUtils.DIR_UNVOTE;
-                        upvoteButton.setTextColor(mPostIconAndInfoColor);
                         upvoteButton.setIconResource(R.drawable.ic_upvote_24dp);
                         upvoteButton.setIconTint(ColorStateList.valueOf(mPostIconAndInfoColor));
+                        scoreTextView.setTextColor(mPostIconAndInfoColor);
                     }
 
                     if (!mHideTheNumberOfVotes) {
-                        upvoteButton.setText(Utils.getNVotes(mShowAbsoluteNumberOfVotes, post.getScore() + post.getVoteType()));
+                        scoreTextView.setText(Utils.getNVotes(mShowAbsoluteNumberOfVotes, post.getScore() + post.getVoteType()));
                     }
 
                     VoteThing.voteThing(mActivity, mOauthRetrofit, mAccessToken, new VoteThing.VoteThingListener() {
@@ -5500,25 +5577,24 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                             if (newVoteType.equals(APIUtils.DIR_UPVOTE)) {
                                 post.setVoteType(1);
                                 if (currentPosition == position) {
-                                    upvoteButton.setTextColor(mUpvotedColor);
                                     upvoteButton.setIconResource(R.drawable.ic_upvote_filled_24dp);
                                     upvoteButton.setIconTint(ColorStateList.valueOf(mUpvotedColor));
+                                    scoreTextView.setTextColor(mUpvotedColor);
                                 }
                             } else {
                                 post.setVoteType(0);
                                 if (currentPosition == position) {
-                                    upvoteButton.setTextColor(mPostIconAndInfoColor);
                                     upvoteButton.setIconResource(R.drawable.ic_upvote_24dp);
                                     upvoteButton.setIconTint(ColorStateList.valueOf(mPostIconAndInfoColor));
+                                    scoreTextView.setTextColor(mPostIconAndInfoColor);
                                 }
                             }
 
                             if (currentPosition == position) {
-                                downvoteButton.setTextColor(mPostIconAndInfoColor);
                                 downvoteButton.setIconResource(R.drawable.ic_downvote_24dp);
                                 downvoteButton.setIconTint(ColorStateList.valueOf(mPostIconAndInfoColor));
                                 if (!mHideTheNumberOfVotes) {
-                                    upvoteButton.setText(Utils.getNVotes(mShowAbsoluteNumberOfVotes, post.getScore() + post.getVoteType()));
+                                    scoreTextView.setText(Utils.getNVotes(mShowAbsoluteNumberOfVotes, post.getScore() + post.getVoteType()));
                                 }
                             }
 
@@ -5531,20 +5607,23 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                             post.setVoteType(previousVoteType);
                             if (getBindingAdapterPosition() == position) {
                                 if (!mHideTheNumberOfVotes) {
-                                    upvoteButton.setText(Utils.getNVotes(mShowAbsoluteNumberOfVotes, post.getScore() + previousVoteType));
+                                    scoreTextView.setText(Utils.getNVotes(mShowAbsoluteNumberOfVotes, post.getScore() + previousVoteType));
                                 }
-                                upvoteButton.setTextColor(previousUpvoteButtonTextColor);
                                 upvoteButton.setIcon(previousUpvoteButtonDrawable);
-                                upvoteButton.setIconTint(ColorStateList.valueOf(previousUpvoteButtonTextColor));
-                                downvoteButton.setTextColor(previousDownvoteButtonTextColor);
+                                upvoteButton.setIconTint(previousUpvoteButtonIconTint);
+                                scoreTextView.setTextColor(previousScoreTextViewColor);
                                 downvoteButton.setIcon(previousDownvoteButtonDrawable);
-                                downvoteButton.setIconTint(ColorStateList.valueOf(previousDownvoteButtonTextColor));
+                                downvoteButton.setIconTint(previousDownvoteButtonIconTint);
                             }
 
                             EventBus.getDefault().post(new PostUpdateEventToPostDetailFragment(post));
                         }
                     }, post.getFullName(), newVoteType, getBindingAdapterPosition());
                 }
+            });
+
+            scoreTextView.setOnClickListener(view -> {
+                upvoteButton.performClick();
             });
 
             downvoteButton.setOnClickListener(view -> {
@@ -5564,15 +5643,15 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                         return;
                     }
 
-                    int previousUpvoteButtonTextColor = upvoteButton.getTextColors().getDefaultColor();
-                    int previousDownvoteButtonTextColor = downvoteButton.getTextColors().getDefaultColor();
+                    ColorStateList previousUpvoteButtonIconTint = upvoteButton.getIconTint();
+                    ColorStateList previousDownvoteButtonIconTint = downvoteButton.getIconTint();
+                    int previousScoreTextViewColor = scoreTextView.getCurrentTextColor();
                     Drawable previousUpvoteButtonDrawable = upvoteButton.getIcon();
                     Drawable previousDownvoteButtonDrawable = downvoteButton.getIcon();
 
                     int previousVoteType = post.getVoteType();
                     String newVoteType;
 
-                    upvoteButton.setTextColor(mPostIconAndInfoColor);
                     upvoteButton.setIconResource(R.drawable.ic_upvote_24dp);
                     upvoteButton.setIconTint(ColorStateList.valueOf(mPostIconAndInfoColor));
 
@@ -5580,20 +5659,18 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                         //Not downvoted before
                         post.setVoteType(-1);
                         newVoteType = APIUtils.DIR_DOWNVOTE;
-                        downvoteButton.setTextColor(mDownvotedColor);
                         downvoteButton.setIconResource(R.drawable.ic_downvote_filled_24dp);
                         downvoteButton.setIconTint(ColorStateList.valueOf(mDownvotedColor));
                     } else {
                         //Downvoted before
                         post.setVoteType(0);
                         newVoteType = APIUtils.DIR_UNVOTE;
-                        downvoteButton.setTextColor(mPostIconAndInfoColor);
                         downvoteButton.setIconResource(R.drawable.ic_downvote_24dp);
                         downvoteButton.setIconTint(ColorStateList.valueOf(mPostIconAndInfoColor));
                     }
 
                     if (!mHideTheNumberOfVotes) {
-                        upvoteButton.setText(Utils.getNVotes(mShowAbsoluteNumberOfVotes, post.getScore() + post.getVoteType()));
+                        scoreTextView.setText(Utils.getNVotes(mShowAbsoluteNumberOfVotes, post.getScore() + post.getVoteType()));
                     }
 
                     VoteThing.voteThing(mActivity, mOauthRetrofit, mAccessToken, new VoteThing.VoteThingListener() {
@@ -5603,25 +5680,24 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                             if (newVoteType.equals(APIUtils.DIR_DOWNVOTE)) {
                                 post.setVoteType(-1);
                                 if (currentPosition == position) {
-                                    downvoteButton.setTextColor(mDownvotedColor);
                                     downvoteButton.setIconResource(R.drawable.ic_downvote_filled_24dp);
                                     downvoteButton.setIconTint(ColorStateList.valueOf(mDownvotedColor));
+                                    scoreTextView.setTextColor(mDownvotedColor);
                                 }
                             } else {
                                 post.setVoteType(0);
                                 if (currentPosition == position) {
-                                    downvoteButton.setTextColor(mPostIconAndInfoColor);
                                     downvoteButton.setIconResource(R.drawable.ic_downvote_24dp);
                                     downvoteButton.setIconTint(ColorStateList.valueOf(mPostIconAndInfoColor));
+                                    scoreTextView.setTextColor(mPostIconAndInfoColor);
                                 }
                             }
 
                             if (currentPosition == position) {
-                                upvoteButton.setTextColor(mPostIconAndInfoColor);
                                 upvoteButton.setIconResource(R.drawable.ic_upvote_24dp);
                                 upvoteButton.setIconTint(ColorStateList.valueOf(mPostIconAndInfoColor));
                                 if (!mHideTheNumberOfVotes) {
-                                    upvoteButton.setText(Utils.getNVotes(mShowAbsoluteNumberOfVotes, post.getScore() + post.getVoteType()));
+                                    scoreTextView.setText(Utils.getNVotes(mShowAbsoluteNumberOfVotes, post.getScore() + post.getVoteType()));
                                 }
                             }
 
@@ -5634,14 +5710,13 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                             post.setVoteType(previousVoteType);
                             if (getBindingAdapterPosition() == position) {
                                 if (!mHideTheNumberOfVotes) {
-                                    upvoteButton.setText(Utils.getNVotes(mShowAbsoluteNumberOfVotes, post.getScore() + previousVoteType));
+                                    scoreTextView.setText(Utils.getNVotes(mShowAbsoluteNumberOfVotes, post.getScore() + previousVoteType));
                                 }
-                                upvoteButton.setTextColor(previousUpvoteButtonTextColor);
                                 upvoteButton.setIcon(previousUpvoteButtonDrawable);
-                                upvoteButton.setIconTint(ColorStateList.valueOf(previousUpvoteButtonTextColor));
-                                downvoteButton.setTextColor(previousDownvoteButtonTextColor);
+                                upvoteButton.setIconTint(previousUpvoteButtonIconTint);
+                                scoreTextView.setTextColor(previousScoreTextViewColor);
                                 downvoteButton.setIcon(previousDownvoteButtonDrawable);
-                                downvoteButton.setIconTint(ColorStateList.valueOf(previousDownvoteButtonTextColor));
+                                downvoteButton.setIconTint(previousDownvoteButtonIconTint);
                             }
 
                             EventBus.getDefault().post(new PostUpdateEventToPostDetailFragment(post));
@@ -5776,8 +5851,8 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                                                  ImageView playButton,
                                                  DefaultTimeBar progressBar,
                                                  ConstraintLayout bottomConstraintLayout,
-                                                 MaterialButtonToggleGroup voteButtonToggleGroup,
                                                  MaterialButton upvoteButton,
+                                                 TextView scoreTextView,
                                                  MaterialButton downvoteButton,
                                                  MaterialButton commentsCountButton,
                                                  MaterialButton saveButton,
@@ -5791,8 +5866,8 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                     postTimeTextView,
                     titleTextView,
                     bottomConstraintLayout,
-                    voteButtonToggleGroup,
                     upvoteButton,
+                    scoreTextView,
                     downvoteButton,
                     commentsCountButton,
                     saveButton,
@@ -6045,8 +6120,8 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                     binding.getRoot().findViewById(R.id.exo_play),
                     binding.getRoot().findViewById(R.id.exo_progress),
                     binding.bottomConstraintLayoutItemPostCard3VideoTypeAutoplay,
-                    binding.voteButtonToggleItemPostCard3VideoTypeAutoplay,
                     binding.upvoteButtonItemPostCard3VideoTypeAutoplay,
+                    binding.scoreTextViewItemPostCard3VideoTypeAutoplay,
                     binding.downvoteButtonItemPostCard3VideoTypeAutoplay,
                     binding.commentsCountButtonItemPostCard3VideoTypeAutoplay,
                     binding.saveButtonItemPostCard3VideoTypeAutoplay,
@@ -6073,8 +6148,8 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                     binding.getRoot().findViewById(R.id.exo_play),
                     binding.getRoot().findViewById(R.id.exo_progress),
                     binding.bottomConstraintLayoutItemPostCard3VideoTypeAutoplay,
-                    binding.voteButtonToggleItemPostCard3VideoTypeAutoplay,
                     binding.upvoteButtonItemPostCard3VideoTypeAutoplay,
+                    binding.scoreTextViewItemPostCard3VideoTypeAutoplay,
                     binding.downvoteButtonItemPostCard3VideoTypeAutoplay,
                     binding.commentsCountButtonItemPostCard3VideoTypeAutoplay,
                     binding.saveButtonItemPostCard3VideoTypeAutoplay,
@@ -6096,8 +6171,8 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                     binding.postTimeTextViewItemPostCard3WithPreview,
                     binding.titleTextViewItemPostCard3WithPreview,
                     binding.bottomConstraintLayoutItemPostCard3WithPreview,
-                    binding.voteButtonToggleItemPostCard3WithPreview,
                     binding.upvoteButtonItemPostCard3WithPreview,
+                    binding.scoreTextViewItemPostCard3WithPreview,
                     binding.downvoteButtonItemPostCard3WithPreview,
                     binding.commentsCountButtonItemPostCard3WithPreview,
                     binding.saveButtonItemPostCard3WithPreview,
@@ -6175,8 +6250,8 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                                                    CustomTextView imageIndexTextView,
                                                    ImageView noPreviewImageView,
                                                    ConstraintLayout bottomConstraintLayout,
-                                                   MaterialButtonToggleGroup voteButtonToggleGroup,
                                                    MaterialButton upvoteButton,
+                                                   TextView scoreTextView,
                                                    MaterialButton downvoteButton,
                                                    MaterialButton commentsCountButton,
                                                    MaterialButton saveButton,
@@ -6190,8 +6265,8 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                     postTimeTextView,
                     titleTextView,
                     bottomConstraintLayout,
-                    voteButtonToggleGroup,
                     upvoteButton,
+                    scoreTextView,
                     downvoteButton,
                     commentsCountButton,
                     saveButton,
@@ -6333,8 +6408,8 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                     binding.imageIndexTextViewItemPostCard3GalleryType,
                     binding.noPreviewImageViewItemPostCard3GalleryType,
                     binding.bottomConstraintLayoutItemPostCard3GalleryType,
-                    binding.voteButtonToggleItemPostCard3GalleryType,
                     binding.upvoteButtonItemPostCard3GalleryType,
+                    binding.scoreTextViewItemPostCard3GalleryType,
                     binding.downvoteButtonItemPostCard3GalleryType,
                     binding.commentsCountButtonItemPostCard3GalleryType,
                     binding.saveButtonItemPostCard3GalleryType,
@@ -6357,8 +6432,8 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                     binding.postTimeTextViewItemPostCard3TextType,
                     binding.titleTextViewItemPostCard3TextType,
                     binding.bottomConstraintLayoutItemPostCard3TextType,
-                    binding.voteButtonToggleItemPostCard3TextType,
                     binding.upvoteButtonItemPostCard3TextType,
+                    binding.scoreTextViewItemPostCard3TextType,
                     binding.downvoteButtonItemPostCard3TextType,
                     binding.commentsCountButtonItemPostCard3TextType,
                     binding.saveButtonItemPostCard3TextType,
