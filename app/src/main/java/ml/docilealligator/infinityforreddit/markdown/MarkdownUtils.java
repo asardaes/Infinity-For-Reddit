@@ -31,6 +31,7 @@ public class MarkdownUtils {
     @NonNull
     public static Markwon createFullRedditMarkwon(@NonNull Context context,
                                                   @NonNull MarkwonPlugin miscPlugin,
+                                                  @NonNull ImageAndGifPlugin imageAndGifPlugin,
                                                   int markdownColor,
                                                   int spoilerBackgroundColor,
                                                   @Nullable BetterLinkMovementMethod.OnLinkLongClickListener onLinkLongClickListener) {
@@ -47,6 +48,7 @@ public class MarkdownUtils {
                 .usePlugin(MovementMethodPlugin.create(new SpoilerAwareMovementMethod()
                         .setOnLinkLongClickListener(onLinkLongClickListener)))
                 .usePlugin(LinkifyPlugin.create(Linkify.WEB_URLS))
+                .usePlugin(imageAndGifPlugin)
                 .usePlugin(TableEntryPlugin.create(context))
                 .build();
     }
@@ -93,11 +95,12 @@ public class MarkdownUtils {
      * Creates a MarkwonAdapter configured with support for tables.
      */
     @NonNull
-    public static MarkwonAdapter createTablesAdapter() {
+    public static MarkwonAdapter createTablesAdapter(ImageAndGifEntry imageAndGifEntry) {
         return MarkwonAdapter.builder(R.layout.adapter_default_entry, R.id.text)
                 .include(TableBlock.class, TableEntry.create(builder -> builder
                         .tableLayout(R.layout.adapter_table_block, R.id.table_layout)
                         .textLayoutIsRoot(R.layout.view_table_entry_cell)))
+                .include(ImageAndGifBlock.class, imageAndGifEntry)
                 .build();
     }
 

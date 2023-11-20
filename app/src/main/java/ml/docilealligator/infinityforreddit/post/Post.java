@@ -1,11 +1,14 @@
 package ml.docilealligator.infinityforreddit.post;
 
+import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 import ml.docilealligator.infinityforreddit.utils.APIUtils;
 
@@ -22,17 +25,7 @@ public class Post implements Parcelable {
     public static final int GIF_TYPE = 4;
     public static final int NO_PREVIEW_LINK_TYPE = 5;
     public static final int GALLERY_TYPE = 6;
-    public static final Creator<Post> CREATOR = new Creator<Post>() {
-        @Override
-        public Post createFromParcel(Parcel in) {
-            return new Post(in);
-        }
 
-        @Override
-        public Post[] newArray(int size) {
-            return new Post[size];
-        }
-    };
     private String id;
     private String fullName;
     private String subredditName;
@@ -59,8 +52,6 @@ public class Post implements Parcelable {
     private boolean loadGfyOrStreamableVideoSuccess;
     private String permalink;
     private String flair;
-    private String awards;
-    private int nAwards;
     private long postTimeMillis;
     private int score;
     private int postType;
@@ -80,8 +71,11 @@ public class Post implements Parcelable {
     private String distinguished;
     private String suggestedSort;
     private ArrayList<Preview> previews = new ArrayList<>();
+    @Nullable
+    private Map<String, MediaMetadata> mediaMetadataMap;
     private ArrayList<Gallery> gallery = new ArrayList<>();
 
+    //Text and video posts
     public Post(String id, String fullName, String subredditName, String subredditNamePrefixed,
                 String author, String authorFlair, String authorFlairHTML, long postTimeMillis,
                 String title, String permalink, int score, int postType, int voteType, int nComments,
@@ -105,8 +99,6 @@ public class Post implements Parcelable {
         this.nComments = nComments;
         this.upvoteRatio = upvoteRatio;
         this.flair = flair;
-        this.awards = awards;
-        this.nAwards = nAwards;
         this.hidden = hidden;
         this.spoiler = spoiler;
         this.nsfw = nsfw;
@@ -144,8 +136,6 @@ public class Post implements Parcelable {
         this.nComments = nComments;
         this.upvoteRatio = upvoteRatio;
         this.flair = flair;
-        this.awards = awards;
-        this.nAwards = nAwards;
         this.hidden = hidden;
         this.spoiler = spoiler;
         this.nsfw = nsfw;
@@ -167,10 +157,9 @@ public class Post implements Parcelable {
         subredditIconUrl = in.readString();
         author = in.readString();
         authorNamePrefixed = in.readString();
+        authorIconUrl = in.readString();
         authorFlair = in.readString();
         authorFlairHTML = in.readString();
-        authorIconUrl = in.readString();
-        postTimeMillis = in.readLong();
         title = in.readString();
         selfText = in.readString();
         selfTextPlain = in.readString();
@@ -187,8 +176,7 @@ public class Post implements Parcelable {
         loadGfyOrStreamableVideoSuccess = in.readByte() != 0;
         permalink = in.readString();
         flair = in.readString();
-        awards = in.readString();
-        nAwards = in.readInt();
+        postTimeMillis = in.readLong();
         score = in.readInt();
         postType = in.readInt();
         voteType = in.readInt();
@@ -206,9 +194,22 @@ public class Post implements Parcelable {
         crosspostParentId = in.readString();
         distinguished = in.readString();
         suggestedSort = in.readString();
-        in.readTypedList(previews, Preview.CREATOR);
-        in.readTypedList(gallery, Gallery.CREATOR);
+        previews = in.createTypedArrayList(Preview.CREATOR);
+        mediaMetadataMap = (Map<String, MediaMetadata>) in.readValue(getClass().getClassLoader());
+        gallery = in.createTypedArrayList(Gallery.CREATOR);
     }
+
+    public static final Creator<Post> CREATOR = new Creator<Post>() {
+        @Override
+        public Post createFromParcel(Parcel in) {
+            return new Post(in);
+        }
+
+        @Override
+        public Post[] newArray(int size) {
+            return new Post[size];
+        }
+    };
 
     public String getId() {
         return id;
@@ -407,22 +408,6 @@ public class Post implements Parcelable {
         return suggestedSort;
     }
 
-    public String getAwards() {
-        return awards;
-    }
-
-    public void addAwards(String newAwardsHTML) {
-        awards += newAwardsHTML;
-    }
-
-    public int getNAwards() {
-        return nAwards;
-    }
-
-    public void addAwards(int newNAwards) {
-        nAwards += newNAwards;
-    }
-
     public int getScore() {
         return score;
     }
@@ -492,6 +477,57 @@ public class Post implements Parcelable {
         return 0;
     }
 
+    @Override
+    public void writeToParcel(@NonNull Parcel dest, int flags) {
+        dest.writeString(id);
+        dest.writeString(fullName);
+        dest.writeString(subredditName);
+        dest.writeString(subredditNamePrefixed);
+        dest.writeString(subredditIconUrl);
+        dest.writeString(author);
+        dest.writeString(authorNamePrefixed);
+        dest.writeString(authorIconUrl);
+        dest.writeString(authorFlair);
+        dest.writeString(authorFlairHTML);
+        dest.writeString(title);
+        dest.writeString(selfText);
+        dest.writeString(selfTextPlain);
+        dest.writeString(selfTextPlainTrimmed);
+        dest.writeString(url);
+        dest.writeString(videoUrl);
+        dest.writeString(videoDownloadUrl);
+        dest.writeString(gfycatId);
+        dest.writeString(streamableShortCode);
+        dest.writeByte((byte) (isImgur ? 1 : 0));
+        dest.writeByte((byte) (isGfycat ? 1 : 0));
+        dest.writeByte((byte) (isRedgifs ? 1 : 0));
+        dest.writeByte((byte) (isStreamable ? 1 : 0));
+        dest.writeByte((byte) (loadGfyOrStreamableVideoSuccess ? 1 : 0));
+        dest.writeString(permalink);
+        dest.writeString(flair);
+        dest.writeLong(postTimeMillis);
+        dest.writeInt(score);
+        dest.writeInt(postType);
+        dest.writeInt(voteType);
+        dest.writeInt(nComments);
+        dest.writeInt(upvoteRatio);
+        dest.writeByte((byte) (hidden ? 1 : 0));
+        dest.writeByte((byte) (spoiler ? 1 : 0));
+        dest.writeByte((byte) (nsfw ? 1 : 0));
+        dest.writeByte((byte) (stickied ? 1 : 0));
+        dest.writeByte((byte) (archived ? 1 : 0));
+        dest.writeByte((byte) (locked ? 1 : 0));
+        dest.writeByte((byte) (saved ? 1 : 0));
+        dest.writeByte((byte) (isCrosspost ? 1 : 0));
+        dest.writeByte((byte) (isRead ? 1 : 0));
+        dest.writeString(crosspostParentId);
+        dest.writeString(distinguished);
+        dest.writeString(suggestedSort);
+        dest.writeTypedList(previews);
+        dest.writeValue(mediaMetadataMap);
+        dest.writeTypedList(gallery);
+    }
+
     public boolean isStickied() {
         return stickied;
     }
@@ -540,64 +576,20 @@ public class Post implements Parcelable {
         this.previews = previews;
     }
 
+    public Map<String, MediaMetadata> getMediaMetadataMap() {
+        return mediaMetadataMap;
+    }
+
+    public void setMediaMetadataMap(Map<String, MediaMetadata> mediaMetadataMap) {
+        this.mediaMetadataMap = mediaMetadataMap;
+    }
+
     public ArrayList<Gallery> getGallery() {
         return gallery;
     }
 
     public void setGallery(ArrayList<Gallery> gallery) {
         this.gallery = gallery;
-    }
-
-    @Override
-    public void writeToParcel(Parcel parcel, int i) {
-        parcel.writeString(id);
-        parcel.writeString(fullName);
-        parcel.writeString(subredditName);
-        parcel.writeString(subredditNamePrefixed);
-        parcel.writeString(subredditIconUrl);
-        parcel.writeString(author);
-        parcel.writeString(authorNamePrefixed);
-        parcel.writeString(authorFlair);
-        parcel.writeString(authorFlairHTML);
-        parcel.writeString(authorIconUrl);
-        parcel.writeLong(postTimeMillis);
-        parcel.writeString(title);
-        parcel.writeString(selfText);
-        parcel.writeString(selfTextPlain);
-        parcel.writeString(selfTextPlainTrimmed);
-        parcel.writeString(url);
-        parcel.writeString(videoUrl);
-        parcel.writeString(videoDownloadUrl);
-        parcel.writeString(gfycatId);
-        parcel.writeString(streamableShortCode);
-        parcel.writeByte((byte) (isImgur ? 1 : 0));
-        parcel.writeByte((byte) (isGfycat ? 1 : 0));
-        parcel.writeByte((byte) (isRedgifs ? 1 : 0));
-        parcel.writeByte((byte) (isStreamable ? 1 : 0));
-        parcel.writeByte((byte) (loadGfyOrStreamableVideoSuccess ? 1 : 0));
-        parcel.writeString(permalink);
-        parcel.writeString(flair);
-        parcel.writeString(awards);
-        parcel.writeInt(nAwards);
-        parcel.writeInt(score);
-        parcel.writeInt(postType);
-        parcel.writeInt(voteType);
-        parcel.writeInt(nComments);
-        parcel.writeInt(upvoteRatio);
-        parcel.writeByte((byte) (hidden ? 1 : 0));
-        parcel.writeByte((byte) (spoiler ? 1 : 0));
-        parcel.writeByte((byte) (nsfw ? 1 : 0));
-        parcel.writeByte((byte) (stickied ? 1 : 0));
-        parcel.writeByte((byte) (archived ? 1 : 0));
-        parcel.writeByte((byte) (locked ? 1 : 0));
-        parcel.writeByte((byte) (saved ? 1 : 0));
-        parcel.writeByte((byte) (isCrosspost ? 1 : 0));
-        parcel.writeByte((byte) (isRead ? 1 : 0));
-        parcel.writeString(crosspostParentId);
-        parcel.writeString(distinguished);
-        parcel.writeString(suggestedSort);
-        parcel.writeTypedList(previews);
-        parcel.writeTypedList(gallery);
     }
 
     @Override
@@ -773,6 +765,100 @@ public class Post implements Parcelable {
             parcel.writeInt(previewHeight);
             parcel.writeString(previewCaption);
             parcel.writeString(previewCaptionUrl);
+        }
+    }
+
+    public static class MediaMetadata implements Parcelable {
+        public String id;
+        //E.g. Image
+        public String e;
+        public String fileName;
+        public MediaItem original;
+        public MediaItem downscaled;
+
+        public MediaMetadata(String id, String e, MediaItem original, MediaItem downscaled) {
+            this.id = id;
+            this.e = e;
+            String path = Uri.parse(original.url).getPath();
+            this.fileName = path == null ? "Image.jpg" : path.substring(1);
+            this.original = original;
+            this.downscaled = downscaled;
+        }
+
+        protected MediaMetadata(Parcel in) {
+            id = in.readString();
+            e = in.readString();
+            fileName = in.readString();
+            original = in.readParcelable(MediaItem.class.getClassLoader());
+            downscaled = in.readParcelable(MediaItem.class.getClassLoader());
+        }
+
+        public static final Creator<MediaMetadata> CREATOR = new Creator<MediaMetadata>() {
+            @Override
+            public MediaMetadata createFromParcel(Parcel in) {
+                return new MediaMetadata(in);
+            }
+
+            @Override
+            public MediaMetadata[] newArray(int size) {
+                return new MediaMetadata[size];
+            }
+        };
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(@NonNull Parcel dest, int flags) {
+            dest.writeString(id);
+            dest.writeString(e);
+            dest.writeString(fileName);
+            dest.writeParcelable(original, flags);
+            dest.writeParcelable(downscaled, flags);
+        }
+
+        public static class MediaItem implements Parcelable {
+            public int x;
+            public int y;
+            public String url;
+
+            public MediaItem(int x, int y, String url) {
+                this.x = x;
+                this.y = y;
+                this.url = url;
+            }
+
+            protected MediaItem(Parcel in) {
+                x = in.readInt();
+                y = in.readInt();
+                url = in.readString();
+            }
+
+            public static final Creator<MediaItem> CREATOR = new Creator<MediaItem>() {
+                @Override
+                public MediaItem createFromParcel(Parcel in) {
+                    return new MediaItem(in);
+                }
+
+                @Override
+                public MediaItem[] newArray(int size) {
+                    return new MediaItem[size];
+                }
+            };
+
+            @Override
+            public int describeContents() {
+                return 0;
+            }
+
+            @Override
+            public void writeToParcel(@NonNull Parcel dest, int flags) {
+                dest.writeInt(x);
+                dest.writeInt(y);
+                dest.writeString(url);
+            }
         }
     }
 }

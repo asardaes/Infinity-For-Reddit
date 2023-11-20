@@ -1,7 +1,6 @@
 package ml.docilealligator.infinityforreddit.activities;
 
 import android.content.ActivityNotFoundException;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -15,7 +14,6 @@ import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -66,7 +64,10 @@ import ml.docilealligator.infinityforreddit.customtheme.CustomThemeWrapper;
 import ml.docilealligator.infinityforreddit.customviews.LinearLayoutManagerBugFixed;
 import ml.docilealligator.infinityforreddit.databinding.ActivityCommentBinding;
 import ml.docilealligator.infinityforreddit.events.SwitchAccountEvent;
+import ml.docilealligator.infinityforreddit.markdown.ImageAndGifEntry;
+import ml.docilealligator.infinityforreddit.markdown.ImageAndGifPlugin;
 import ml.docilealligator.infinityforreddit.markdown.MarkdownUtils;
+import ml.docilealligator.infinityforreddit.post.Post;
 import ml.docilealligator.infinityforreddit.utils.SharedPreferencesUtils;
 import ml.docilealligator.infinityforreddit.utils.Utils;
 import okhttp3.ConnectionPool;
@@ -153,6 +154,8 @@ public class CommentActivity extends BaseActivity implements UploadImageEnabledA
             addOnOffsetChangedListener(binding.commentAppbarLayout);
         }
 
+        mGlide = Glide.with(this);
+
         mAccessToken = mCurrentAccountSharedPreferences.getString(SharedPreferencesUtils.ACCESS_TOKEN, null);
         if (mAccessToken == null) {
             finish();
@@ -207,9 +210,15 @@ public class CommentActivity extends BaseActivity implements UploadImageEnabledA
                     builder.linkColor(linkColor);
                 }
             };
+            ImageAndGifPlugin imageAndGifPlugin = new ImageAndGifPlugin();
             Markwon postBodyMarkwon = MarkdownUtils.createFullRedditMarkwon(this,
-                    miscPlugin, parentTextColor, parentSpoilerBackgroundColor, null);
-            MarkwonAdapter markwonAdapter = MarkdownUtils.createTablesAdapter();
+                    miscPlugin, imageAndGifPlugin, parentTextColor, parentSpoilerBackgroundColor, null);
+            MarkwonAdapter markwonAdapter = MarkdownUtils.createTablesAdapter(new ImageAndGifEntry(this, mSharedPreferences, mGlide, new ImageAndGifEntry.OnItemClickListener() {
+                @Override
+                public void onItemClick(Post.MediaMetadata mediaMetadata) {
+
+                }
+            }));
             binding.commentContentMarkdownView.setLayoutManager(new LinearLayoutManagerBugFixed(this));
             binding.commentContentMarkdownView.setAdapter(markwonAdapter);
             markwonAdapter.setMarkdown(postBodyMarkwon, parentBodyMarkdown);
@@ -224,8 +233,6 @@ public class CommentActivity extends BaseActivity implements UploadImageEnabledA
         }
 
         setSupportActionBar(binding.commentToolbar);
-
-        mGlide = Glide.with(this);
 
         if (savedInstanceState != null) {
             selectedAccount = savedInstanceState.getParcelable(SELECTED_ACCOUNT_STATE);

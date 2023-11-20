@@ -67,6 +67,7 @@ import ml.docilealligator.infinityforreddit.customviews.SwipeLockInterface;
 import ml.docilealligator.infinityforreddit.customviews.SwipeLockLinearLayoutManager;
 import ml.docilealligator.infinityforreddit.databinding.ItemCommentBinding;
 import ml.docilealligator.infinityforreddit.fragments.ViewPostDetailFragment;
+import ml.docilealligator.infinityforreddit.markdown.ImageAndGifPlugin;
 import ml.docilealligator.infinityforreddit.markdown.MarkdownUtils;
 import ml.docilealligator.infinityforreddit.post.Post;
 import ml.docilealligator.infinityforreddit.utils.APIUtils;
@@ -93,6 +94,7 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
     private Executor mExecutor;
     private Retrofit mRetrofit;
     private Retrofit mOauthRetrofit;
+    private ImageAndGifPlugin mImageAndGifPlugin;
     private Markwon mCommentMarkwon;
     private String mAccessToken;
     private String mAccountName;
@@ -148,7 +150,6 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
     private int mButtonTextColor;
     private int mCommentIconAndInfoColor;
     private int mFullyCollapsedCommentBackgroundColor;
-    private int mAwardedCommentBackgroundColor;
     private int[] verticalBlockColors;
 
     private int mSearchCommentIndex = -1;
@@ -204,8 +205,9 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
             }
             return true;
         };
+        mImageAndGifPlugin = new ImageAndGifPlugin();
         mCommentMarkwon = MarkdownUtils.createFullRedditMarkwon(mActivity,
-                miscPlugin, mCommentTextColor, commentSpoilerBackgroundColor, onLinkLongClickListener);
+                miscPlugin, mImageAndGifPlugin, mCommentTextColor, commentSpoilerBackgroundColor, onLinkLongClickListener);
         recycledViewPool = new RecyclerView.RecycledViewPool();
         mAccessToken = accessToken;
         mAccountName = accountName;
@@ -260,7 +262,6 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
         mButtonTextColor = customThemeWrapper.getButtonTextColor();
         mCommentIconAndInfoColor = customThemeWrapper.getCommentIconAndInfoColor();
         mFullyCollapsedCommentBackgroundColor = customThemeWrapper.getFullyCollapsedCommentBackgroundColor();
-        mAwardedCommentBackgroundColor = customThemeWrapper.getAwardedCommentBackgroundColor();
 
         verticalBlockColors = new int[] {
                 customThemeWrapper.getCommentVerticalBarColor1(),
@@ -366,8 +367,6 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
             if (comment != null) {
                 if (mIsSingleCommentThreadMode && comment.getId().equals(mSingleCommentId)) {
                     holder.itemView.setBackgroundColor(mSingleCommentThreadBackgroundColor);
-                } else if (comment.getAwards() != null && !comment.getAwards().equals("")) {
-                    holder.itemView.setBackgroundColor(mAwardedCommentBackgroundColor);
                 }
 
                 String authorPrefixed = "u/" + comment.getAuthor();

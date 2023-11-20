@@ -52,7 +52,10 @@ import ml.docilealligator.infinityforreddit.customviews.SwipeLockInterface;
 import ml.docilealligator.infinityforreddit.customviews.SwipeLockLinearLayoutManager;
 import ml.docilealligator.infinityforreddit.customviews.slidr.Slidr;
 import ml.docilealligator.infinityforreddit.events.SwitchAccountEvent;
+import ml.docilealligator.infinityforreddit.markdown.ImageAndGifEntry;
+import ml.docilealligator.infinityforreddit.markdown.ImageAndGifPlugin;
 import ml.docilealligator.infinityforreddit.markdown.MarkdownUtils;
+import ml.docilealligator.infinityforreddit.post.Post;
 import ml.docilealligator.infinityforreddit.utils.JSONUtils;
 import ml.docilealligator.infinityforreddit.utils.SharedPreferencesUtils;
 import ml.docilealligator.infinityforreddit.utils.Utils;
@@ -95,6 +98,7 @@ public class WikiActivity extends BaseActivity {
     @Inject
     CustomThemeWrapper mCustomThemeWrapper;
     private String wikiMarkdown;
+    private ImageAndGifPlugin imageAndGifPlugin;
     private Markwon markwon;
     private MarkwonAdapter markwonAdapter;
     private boolean isRefreshing = false;
@@ -175,10 +179,17 @@ public class WikiActivity extends BaseActivity {
             urlMenuBottomSheetFragment.show(getSupportFragmentManager(), null);
             return true;
         };
+        imageAndGifPlugin = new ImageAndGifPlugin();
         markwon = MarkdownUtils.createFullRedditMarkwon(this,
-                miscPlugin, markdownColor, spoilerBackgroundColor, onLinkLongClickListener);
+                miscPlugin, imageAndGifPlugin, markdownColor, spoilerBackgroundColor, onLinkLongClickListener);
 
-        markwonAdapter = MarkdownUtils.createTablesAdapter();
+        markwonAdapter = MarkdownUtils.createTablesAdapter(new ImageAndGifEntry(this, mSharedPreferences,
+                mGlide, new ImageAndGifEntry.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(Post.MediaMetadata mediaMetadata) {
+
+                    }
+                }));
         LinearLayoutManagerBugFixed linearLayoutManager = new SwipeLockLinearLayoutManager(this, new SwipeLockInterface() {
             @Override
             public void lockSwipe() {
@@ -285,7 +296,7 @@ public class WikiActivity extends BaseActivity {
     }
 
     @Override
-    protected SharedPreferences getDefaultSharedPreferences() {
+    public SharedPreferences getDefaultSharedPreferences() {
         return mSharedPreferences;
     }
 

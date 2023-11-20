@@ -12,6 +12,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
+
 import java.util.ArrayList;
 
 import butterknife.BindView;
@@ -32,10 +34,14 @@ import ml.docilealligator.infinityforreddit.customtheme.CustomThemeWrapper;
 import ml.docilealligator.infinityforreddit.customviews.SwipeLockInterface;
 import ml.docilealligator.infinityforreddit.customviews.SwipeLockLinearLayoutManager;
 import ml.docilealligator.infinityforreddit.customviews.slidr.widget.SliderPanel;
+import ml.docilealligator.infinityforreddit.markdown.ImageAndGifEntry;
+import ml.docilealligator.infinityforreddit.markdown.ImageAndGifPlugin;
 import ml.docilealligator.infinityforreddit.markdown.MarkdownUtils;
+import ml.docilealligator.infinityforreddit.post.Post;
 
 public class RulesRecyclerViewAdapter extends RecyclerView.Adapter<RulesRecyclerViewAdapter.RuleViewHolder> {
     private BaseActivity activity;
+    private ImageAndGifPlugin imageAndGifPlugin;
     private Markwon markwon;
     @Nullable
     private final SliderPanel sliderPanel;
@@ -81,8 +87,9 @@ public class RulesRecyclerViewAdapter extends RecyclerView.Adapter<RulesRecycler
             }
             return true;
         };
+        imageAndGifPlugin = new ImageAndGifPlugin();
         markwon = MarkdownUtils.createFullRedditMarkwon(activity,
-                miscPlugin, mPrimaryTextColor, spoilerBackgroundColor, onLinkLongClickListener);
+                miscPlugin, imageAndGifPlugin, mPrimaryTextColor, spoilerBackgroundColor, onLinkLongClickListener);
     }
 
     @NonNull
@@ -136,7 +143,14 @@ public class RulesRecyclerViewAdapter extends RecyclerView.Adapter<RulesRecycler
             if (activity.typeface != null) {
                 shortNameTextView.setTypeface(activity.typeface);
             }
-            markwonAdapter = MarkdownUtils.createTablesAdapter();
+            markwonAdapter = MarkdownUtils.createTablesAdapter(new ImageAndGifEntry(activity,
+                    activity.getDefaultSharedPreferences(), Glide.with(activity),
+                    new ImageAndGifEntry.OnItemClickListener() {
+                        @Override
+                        public void onItemClick(Post.MediaMetadata mediaMetadata) {
+
+                        }
+                    }));
             SwipeLockLinearLayoutManager swipeLockLinearLayoutManager = new SwipeLockLinearLayoutManager(activity,
                     new SwipeLockInterface() {
                 @Override

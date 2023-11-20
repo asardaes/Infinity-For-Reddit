@@ -12,7 +12,6 @@ public class SharedPreferencesUtils {
     public static final String ICON_FOREGROUND_KEY = "icon_foreground";
     public static final String ICON_BACKGROUND_KEY = "icon_background";
     public static final String ERROR_IMAGE_KEY = "error_image";
-    public static final String GILDED_ICON_KEY = "gilded_icon";
     public static final String CROSSPOST_ICON_KEY = "crosspost_icon";
     public static final String THUMBTACK_ICON_KEY = "thumbtack_icon";
     public static final String BEST_ROCKET_ICON_KEY = "best_rocket_icon";
@@ -179,7 +178,6 @@ public class SharedPreferencesUtils {
     public static final String CLICK_TO_SHOW_MEDIA_IN_GALLERY_LAYOUT = "click_to_show_media_in_gallery_layout";
     public static final String HIDE_POST_TYPE = "hide_post_type";
     public static final String HIDE_POST_FLAIR = "hide_post_flair";
-    public static final String HIDE_THE_NUMBER_OF_AWARDS = "hide_the_number_of_awards";
     public static final String HIDE_SUBREDDIT_AND_USER_PREFIX = "hide_subreddit_and_user_prefix";
     public static final String HIDE_THE_NUMBER_OF_VOTES = "hide_the_number_of_votes";
     public static final String HIDE_THE_NUMBER_OF_COMMENTS = "hide_the_number_of_comments";
@@ -281,8 +279,7 @@ public class SharedPreferencesUtils {
     public static final int MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_DOWNVOTED = 15;
     public static final int MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_HIDDEN = 16;
     public static final int MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_SAVED = 17;
-    public static final int MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_GILDED = 18;
-    public static final int MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_GO_TO_TOP = 19;
+    public static final int MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_GO_TO_TOP = 18;
 
     public static final int MAIN_ACTIVITY_BOTTOM_APP_BAR_FAB_SUBMIT_POSTS = 0;
     public static final int MAIN_ACTIVITY_BOTTOM_APP_BAR_FAB_REFRESH = 1;
@@ -315,9 +312,7 @@ public class SharedPreferencesUtils {
     public static final int OTHER_ACTIVITIES_BOTTOM_APP_BAR_OPTION_DOWNVOTED = 16;
     public static final int OTHER_ACTIVITIES_BOTTOM_APP_BAR_OPTION_HIDDEN = 17;
     public static final int OTHER_ACTIVITIES_BOTTOM_APP_BAR_OPTION_SAVED = 18;
-    public static final int OTHER_ACTIVITIES_BOTTOM_APP_BAR_OPTION_GILDED = 19;
-    public static final int OTHER_ACTIVITIES_BOTTOM_APP_BAR_OPTION_GO_TO_TOP = 20;
-
+    public static final int OTHER_ACTIVITIES_BOTTOM_APP_BAR_OPTION_GO_TO_TOP = 19;
     public static final int OTHER_ACTIVITIES_BOTTOM_APP_BAR_FAB_SUBMIT_POSTS = 0;
     public static final int OTHER_ACTIVITIES_BOTTOM_APP_BAR_FAB_REFRESH = 1;
     public static final int OTHER_ACTIVITIES_BOTTOM_APP_BAR_FAB_CHANGE_SORT_TYPE = 2;
@@ -399,4 +394,5 @@ public class SharedPreferencesUtils {
     public static final String OPEN_LINK_IN_APP_LEGACY = "open_link_in_app";
 
     public static final String DO_NOT_SHOW_REDDIT_API_INFO_AGAIN_LEGACY = "do_not_show_reddit_api_info_again";
+    public static final String HIDE_THE_NUMBER_OF_AWARDS_LEGACY = "hide_the_number_of_awards";
 }

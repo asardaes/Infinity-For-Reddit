@@ -18,6 +18,8 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.bumptech.glide.Glide;
+
 import java.util.concurrent.Executor;
 
 import javax.inject.Inject;
@@ -42,7 +44,10 @@ import ml.docilealligator.infinityforreddit.bottomsheetfragments.CopyTextBottomS
 import ml.docilealligator.infinityforreddit.bottomsheetfragments.UrlMenuBottomSheetFragment;
 import ml.docilealligator.infinityforreddit.customtheme.CustomThemeWrapper;
 import ml.docilealligator.infinityforreddit.customviews.LinearLayoutManagerBugFixed;
+import ml.docilealligator.infinityforreddit.markdown.ImageAndGifEntry;
+import ml.docilealligator.infinityforreddit.markdown.ImageAndGifPlugin;
 import ml.docilealligator.infinityforreddit.markdown.MarkdownUtils;
+import ml.docilealligator.infinityforreddit.post.Post;
 import ml.docilealligator.infinityforreddit.subreddit.FetchSubredditData;
 import ml.docilealligator.infinityforreddit.subreddit.SubredditData;
 import ml.docilealligator.infinityforreddit.subreddit.SubredditViewModel;
@@ -142,9 +147,17 @@ public class SidebarFragment extends Fragment {
             urlMenuBottomSheetFragment.show(getChildFragmentManager(), null);
             return true;
         };
+        ImageAndGifPlugin imageAndGifPlugin = new ImageAndGifPlugin();
         Markwon markwon = MarkdownUtils.createFullRedditMarkwon(activity,
-                miscPlugin, markdownColor, spoilerBackgroundColor, onLinkLongClickListener);
-        MarkwonAdapter markwonAdapter = MarkdownUtils.createTablesAdapter();
+                miscPlugin, imageAndGifPlugin, markdownColor, spoilerBackgroundColor, onLinkLongClickListener);
+        MarkwonAdapter markwonAdapter = MarkdownUtils.createTablesAdapter(new ImageAndGifEntry(activity,
+                activity.getDefaultSharedPreferences(),Glide.with(this),
+                new ImageAndGifEntry.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(Post.MediaMetadata mediaMetadata) {
+
+                    }
+                }));
 
         linearLayoutManager = new LinearLayoutManagerBugFixed(activity);
         recyclerView.setLayoutManager(linearLayoutManager);

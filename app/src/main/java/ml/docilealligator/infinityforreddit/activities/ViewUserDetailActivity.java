@@ -95,8 +95,6 @@ import ml.docilealligator.infinityforreddit.bottomsheetfragments.UserThingSortTy
 import ml.docilealligator.infinityforreddit.customtheme.CustomThemeWrapper;
 import ml.docilealligator.infinityforreddit.customviews.NavigationWrapper;
 import ml.docilealligator.infinityforreddit.customviews.slidr.Slidr;
-import ml.docilealligator.infinityforreddit.customviews.slidr.model.SlidrInterface;
-import ml.docilealligator.infinityforreddit.customviews.slidr.widget.SliderPanel;
 import ml.docilealligator.infinityforreddit.events.ChangeNSFWEvent;
 import ml.docilealligator.infinityforreddit.events.GoBackToMainPageEvent;
 import ml.docilealligator.infinityforreddit.events.SwitchAccountEvent;
@@ -133,7 +131,6 @@ public class ViewUserDetailActivity extends BaseActivity implements SortTypeSele
     public static final String EXTRA_USER_NAME_KEY = "EUNK";
     public static final String EXTRA_MESSAGE_FULLNAME = "ENF";
     public static final String EXTRA_NEW_ACCOUNT_NAME = "ENAN";
-    public static final int GIVE_AWARD_REQUEST_CODE = 200;
     public static final int EDIT_COMMENT_REQUEST_CODE = 300;
     public static final int ADD_TO_MULTIREDDIT_REQUEST_CODE = 400;
 
@@ -994,12 +991,6 @@ public class ViewUserDetailActivity extends BaseActivity implements SortTypeSele
                 startActivity(intent);
                 break;
             }
-            case SharedPreferencesUtils.OTHER_ACTIVITIES_BOTTOM_APP_BAR_OPTION_GILDED: {
-                Intent intent = new Intent(this, AccountPostsActivity.class);
-                intent.putExtra(AccountPostsActivity.EXTRA_USER_WHERE, PostPagingSource.USER_WHERE_GILDED);
-                startActivity(intent);
-                break;
-            }
             case SharedPreferencesUtils.OTHER_ACTIVITIES_BOTTOM_APP_BAR_OPTION_GO_TO_TOP: {
                 if (sectionsPagerAdapter != null) {
                     sectionsPagerAdapter.goBackToTop();
@@ -1051,8 +1042,6 @@ public class ViewUserDetailActivity extends BaseActivity implements SortTypeSele
                 return R.drawable.ic_outline_lock_24dp;
             case SharedPreferencesUtils.OTHER_ACTIVITIES_BOTTOM_APP_BAR_OPTION_SAVED:
                 return R.drawable.ic_outline_bookmarks_24dp;
-            case SharedPreferencesUtils.OTHER_ACTIVITIES_BOTTOM_APP_BAR_OPTION_GILDED:
-                return R.drawable.ic_star_border_24dp;
             case SharedPreferencesUtils.OTHER_ACTIVITIES_BOTTOM_APP_BAR_OPTION_GO_TO_TOP:
                 return R.drawable.ic_keyboard_double_arrow_up_24;
             default:
@@ -1219,14 +1208,7 @@ public class ViewUserDetailActivity extends BaseActivity implements SortTypeSele
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK) {
-            if (requestCode == GIVE_AWARD_REQUEST_CODE) {
-                Toast.makeText(this, R.string.give_award_success, Toast.LENGTH_SHORT).show();
-                int position = data.getIntExtra(GiveAwardActivity.EXTRA_RETURN_ITEM_POSITION, 0);
-                String newAwardsHTML = data.getStringExtra(GiveAwardActivity.EXTRA_RETURN_NEW_AWARDS);
-                if (sectionsPagerAdapter != null) {
-                    sectionsPagerAdapter.giveAward(newAwardsHTML, position);
-                }
-            } else if (requestCode == EDIT_COMMENT_REQUEST_CODE) {
+            if (requestCode == EDIT_COMMENT_REQUEST_CODE) {
                 if (data != null) {
                     if (sectionsPagerAdapter != null) {
                         sectionsPagerAdapter.editComment(
