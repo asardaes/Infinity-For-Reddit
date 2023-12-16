@@ -324,7 +324,7 @@ public class ViewPostDetailActivity extends BaseActivity implements SortTypeSele
     }
 
     @Override
-    protected CustomThemeWrapper getCustomThemeWrapper() {
+    public CustomThemeWrapper getCustomThemeWrapper() {
         return mCustomThemeWrapper;
     }
 
@@ -417,15 +417,6 @@ public class ViewPostDetailActivity extends BaseActivity implements SortTypeSele
             ViewPostDetailFragment fragment = sectionsPagerAdapter.getCurrentFragment();
             if (fragment != null) {
                 fragment.editComment(commentAuthor, commentContentMarkdown, position);
-            }
-        }
-    }
-
-    private void awardGiven(String awardsHTML, int awardCount, int position) {
-        if (sectionsPagerAdapter != null) {
-            ViewPostDetailFragment fragment = sectionsPagerAdapter.getCurrentFragment();
-            if (fragment != null) {
-                fragment.awardGiven(awardsHTML, awardCount, position);
             }
         }
     }
