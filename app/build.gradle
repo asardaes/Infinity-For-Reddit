@@ -8,8 +8,8 @@ android {
         applicationId "ml.docilealligator.infinityforreddit"
         minSdk 21
         targetSdk 33
-        versionCode 174
-        versionName "7.2.7"
+        versionCode 176
+        versionName "7.2.9"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         javaCompileOptions {
             annotationProcessorOptions {
@@ -59,20 +59,21 @@ android {
     }
 
     buildFeatures {
-        viewBinding true
+        buildConfig = true
+        viewBinding = true
     }
     namespace 'ml.docilealligator.infinityforreddit'
 }
 
 dependencies {
 /** AndroidX **/
-    implementation 'androidx.appcompat:appcompat:1.7.0-beta01'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'androidx.biometric:biometric:1.2.0-alpha05'
     implementation 'androidx.browser:browser:1.8.0'
     implementation 'androidx.cardview:cardview:1.0.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    implementation 'androidx.activity:activity:1.8.0'
+    implementation 'androidx.activity:activity:1.9.0'
     def lifecycleVersion = "2.7.0"
     implementation "androidx.lifecycle:lifecycle-common-java8:$lifecycleVersion"
     implementation "androidx.lifecycle:lifecycle-livedata:$lifecycleVersion"
@@ -80,7 +81,7 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-runtime:$lifecycleVersion"
     implementation "androidx.lifecycle:lifecycle-viewmodel:$lifecycleVersion"
 
-    def pagingVersion = '3.2.1'
+    def pagingVersion = '3.3.0'
     implementation "androidx.paging:paging-runtime:$pagingVersion"
     implementation "androidx.paging:paging-guava:$pagingVersion"
     implementation 'androidx.preference:preference:1.2.1'
@@ -89,12 +90,12 @@ dependencies {
     implementation "androidx.room:room-runtime:$roomVersion"
     annotationProcessor "androidx.room:room-compiler:$roomVersion"
     implementation "androidx.room:room-guava:$roomVersion"
-    implementation 'androidx.viewpager2:viewpager2:1.1.0-rc01'
+    implementation 'androidx.viewpager2:viewpager2:1.1.0'
     implementation 'androidx.work:work-runtime:2.9.0'
     implementation 'com.google.android.material:material:1.12.0'
 
 /** ExoPlayer **/
-    def media3_version = "1.3.1"
+    def media3_version = "1.4.0-alpha02"
     implementation "androidx.media3:media3-exoplayer:$media3_version"
     implementation "androidx.media3:media3-exoplayer-dash:$media3_version"
     implementation "androidx.media3:media3-exoplayer-hls:$media3_version"
@@ -118,7 +119,7 @@ dependencies {
     annotationProcessor "com.google.dagger:dagger-compiler:$daggerVersion"
 
     // Binding
-    compileOnly 'com.android.databinding:viewbinding:8.4.0'
+    compileOnly 'com.android.databinding:viewbinding:8.5.0'
 
     // Events
     def eventbusVersion = "3.3.1"
