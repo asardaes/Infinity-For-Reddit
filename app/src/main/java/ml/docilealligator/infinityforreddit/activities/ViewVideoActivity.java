@@ -7,6 +7,9 @@ import static androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES;
 
 import android.Manifest;
 import android.app.Dialog;
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
@@ -22,6 +25,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.PersistableBundle;
 import android.provider.Settings;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -978,30 +982,37 @@ public class ViewVideoActivity extends AppCompatActivity implements CustomFontRe
     private void download() {
         isDownloading = false;
 
-        Intent intent;
         if (videoType != VIDEO_TYPE_NORMAL) {
-            intent = new Intent(this, DownloadMediaService.class);
+            PersistableBundle extras = new PersistableBundle();
             if (post.getPostType() == Post.GIF_TYPE) {
-                intent.putExtra(DownloadMediaService.EXTRA_URL, post.getVideoUrl());
-                intent.putExtra(DownloadMediaService.EXTRA_MEDIA_TYPE, DownloadMediaService.EXTRA_MEDIA_TYPE_GIF);
-                intent.putExtra(DownloadMediaService.EXTRA_FILE_NAME, post.getSubredditName()
+                extras.putString(DownloadMediaService.EXTRA_URL, post.getVideoUrl());
+                extras.putInt(DownloadMediaService.EXTRA_MEDIA_TYPE, DownloadMediaService.EXTRA_MEDIA_TYPE_GIF);
+                extras.putString(DownloadMediaService.EXTRA_FILE_NAME, post.getSubredditName()
                         + "-" + post.getId() + ".gif");
             } else {
-                intent.putExtra(DownloadMediaService.EXTRA_URL, videoDownloadUrl);
-                intent.putExtra(DownloadMediaService.EXTRA_MEDIA_TYPE, DownloadMediaService.EXTRA_MEDIA_TYPE_VIDEO);
-                intent.putExtra(DownloadMediaService.EXTRA_FILE_NAME, videoFileName);
+                extras.putString(DownloadMediaService.EXTRA_URL, videoDownloadUrl);
+                extras.putInt(DownloadMediaService.EXTRA_MEDIA_TYPE, DownloadMediaService.EXTRA_MEDIA_TYPE_VIDEO);
+                extras.putString(DownloadMediaService.EXTRA_FILE_NAME, videoFileName);
             }
 
-            intent.putExtra(DownloadMediaService.EXTRA_SUBREDDIT_NAME, subredditName);
-            intent.putExtra(DownloadMediaService.EXTRA_IS_NSFW, isNSFW);
+            extras.putString(DownloadMediaService.EXTRA_SUBREDDIT_NAME, subredditName);
+            extras.putInt(DownloadMediaService.EXTRA_IS_NSFW, isNSFW ? 1 : 0);
+
+            //TODO: contentEstimatedBytes
+            JobInfo jobInfo = DownloadMediaService.constructJobInfo(this, 5000000, extras);
+            ((JobScheduler) getSystemService(Context.JOB_SCHEDULER_SERVICE)).schedule(jobInfo);
         } else {
-            intent = new Intent(this, DownloadRedditVideoService.class);
-            intent.putExtra(DownloadRedditVideoService.EXTRA_VIDEO_URL, videoDownloadUrl);
-            intent.putExtra(DownloadRedditVideoService.EXTRA_POST_ID, id);
-            intent.putExtra(DownloadRedditVideoService.EXTRA_SUBREDDIT, subredditName);
-            intent.putExtra(DownloadRedditVideoService.EXTRA_IS_NSFW, isNSFW);
+            PersistableBundle extras = new PersistableBundle();
+            extras.putString(DownloadRedditVideoService.EXTRA_VIDEO_URL, videoDownloadUrl);
+            extras.putString(DownloadRedditVideoService.EXTRA_POST_ID, id);
+            extras.putString(DownloadRedditVideoService.EXTRA_SUBREDDIT, subredditName);
+            extras.putInt(DownloadRedditVideoService.EXTRA_IS_NSFW, isNSFW ? 1 : 0);
+
+            //TODO: contentEstimatedBytes
+            JobInfo jobInfo = DownloadRedditVideoService.constructJobInfo(this, 5000000, extras);
+            ((JobScheduler) getSystemService(Context.JOB_SCHEDULER_SERVICE)).schedule(jobInfo);
         }
-        ContextCompat.startForegroundService(this, intent);
+
         Toast.makeText(this, R.string.download_started, Toast.LENGTH_SHORT).show();
     }
 
