@@ -265,6 +265,9 @@
 
     <string name="confirm">Confirm</string>
     <string name="confirm_delete_all_recent_searches">Are you sure you want to delete all recent search queries?</string>
+    <string name="all_recent_searches_deleted">All recent searches deleted</string>
+    <string name="recent_search_deleted">Recent search Deleted</string>
+    <string name="undo">Undo</string>
 
     <string name="sort_best">Best</string>
     <string name="sort_hot">Hot</string>
@@ -1150,6 +1153,7 @@
     <string name="edit_post_filter_name_of_usage_info">Leave it blank to apply this post filter to all the subreddits / users / multireddits</string>
     <string name="click_to_apply_post_filter">Click here to apply it to some post feeds</string>
     <string name="post_filter_usage_embedded_more_count">and %1$d more</string>
+    <string name="post_filter_post_type_explanation">To see certain types of posts, please turn on the switch corresponding to the types.</string>
 
     <string name="excludes_strings_hint">Exclude keywords (key1,key2)</string>
     <string name="comment_filter_name_hint">Comment Filter Name</string>
@@ -1405,6 +1409,5 @@
     <string name="comment_filter_display_mode">Display mode</string>
     <string name="comment_filter_display_mode_remove_comments">Remove comments</string>
     <string name="comment_filter_display_mode_fully_collapse_comments">Fully collapse comments</string>
-
 
 </resources>

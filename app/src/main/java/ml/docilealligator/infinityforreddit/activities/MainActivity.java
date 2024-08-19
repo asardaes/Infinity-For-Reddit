@@ -186,6 +186,7 @@ public class MainActivity extends BaseActivity implements SortTypeSelectionCallb
     private SectionsPagerAdapter sectionsPagerAdapter;
     private NavigationDrawerRecyclerViewMergedAdapter adapter;
     private NavigationWrapper navigationWrapper;
+    private Runnable autoCompleteRunnable;
     private Call<String> subredditAutocompleteCall;
     private boolean mFetchUserInfoSuccess = false;
     private boolean mFetchSubscriptionsSuccess = false;
@@ -279,7 +280,7 @@ public class MainActivity extends BaseActivity implements SortTypeSelectionCallb
             @Override
             public void onDrawerClosed(View drawerView) {
                 if (adapter != null) {
-                    adapter.closeAccountSectionWithoutChangeIconResource(true);
+                    adapter.closeAccountManagement(true);
                 }
             }
         });
@@ -858,7 +859,6 @@ public class MainActivity extends BaseActivity implements SortTypeSelectionCallb
         sectionsPagerAdapter = new SectionsPagerAdapter(this, tabCount, mShowFavoriteMultiReddits,
                 mShowMultiReddits, mShowFavoriteSubscribedSubreddits, mShowSubscribedSubreddits);
         binding.includedAppBar.viewPagerMainActivity.setAdapter(sectionsPagerAdapter);
-        binding.includedAppBar.viewPagerMainActivity.setOffscreenPageLimit(ViewPager2.OFFSCREEN_PAGE_LIMIT_DEFAULT);
         binding.includedAppBar.viewPagerMainActivity.setUserInputEnabled(!mDisableSwipingBetweenTabs);
         if (mMainActivityTabsSharedPreferences.getBoolean((accountName.equals(Account.ANONYMOUS_ACCOUNT) ? "" : accountName) + SharedPreferencesUtils.MAIN_PAGE_SHOW_TAB_NAMES, true)) {
             if (mShowFavoriteMultiReddits || mShowMultiReddits || mShowFavoriteSubscribedSubreddits || mShowSubscribedSubreddits) {
@@ -1400,40 +1400,50 @@ public class MainActivity extends BaseActivity implements SortTypeSelectionCallb
 
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
+                if (subredditAutocompleteCall != null && subredditAutocompleteCall.isExecuted()) {
+                    subredditAutocompleteCall.cancel();
+                }
+                if (autoCompleteRunnable != null) {
+                    handler.removeCallbacks(autoCompleteRunnable);
+                }
             }
 
             @Override
             public void afterTextChanged(Editable editable) {
-                if (subredditAutocompleteCall != null) {
-                    subredditAutocompleteCall.cancel();
+                String currentQuery = editable.toString().trim();
+                if (!currentQuery.isEmpty()) {
+                    autoCompleteRunnable = () -> {
+                        subredditAutocompleteCall = mOauthRetrofit.create(RedditAPI.class).subredditAutocomplete(APIUtils.getOAuthHeader(accessToken),
+                                currentQuery, nsfw);
+                        subredditAutocompleteCall.enqueue(new Callback<>() {
+                            @Override
+                            public void onResponse(@NonNull Call<String> call, @NonNull Response<String> response) {
+                                subredditAutocompleteCall = null;
+                                if (response.isSuccessful() && !call.isCanceled()) {
+                                    ParseSubredditData.parseSubredditListingData(mExecutor, handler,
+                                            response.body(), nsfw, new ParseSubredditData.ParseSubredditListingDataListener() {
+                                                @Override
+                                                public void onParseSubredditListingDataSuccess(ArrayList<SubredditData> subredditData, String after) {
+                                                    adapter.setSubreddits(subredditData);
+                                                }
+
+                                                @Override
+                                                public void onParseSubredditListingDataFail() {
+
+                                                }
+                                            });
+                                }
+                            }
+
+                            @Override
+                            public void onFailure(@NonNull Call<String> call, @NonNull Throwable t) {
+                                subredditAutocompleteCall = null;
+                            }
+                        });
+                    };
+
+                    handler.postDelayed(autoCompleteRunnable, 500);
                 }
-                subredditAutocompleteCall = mOauthRetrofit.create(RedditAPI.class).subredditAutocomplete(APIUtils.getOAuthHeader(accessToken),
-                        editable.toString(), nsfw);
-                subredditAutocompleteCall.enqueue(new Callback<>() {
-                    @Override
-                    public void onResponse(@NonNull Call<String> call, @NonNull Response<String> response) {
-                        if (response.isSuccessful()) {
-                            ParseSubredditData.parseSubredditListingData(mExecutor, handler,
-                                    response.body(), nsfw, new ParseSubredditData.ParseSubredditListingDataListener() {
-                                        @Override
-                                        public void onParseSubredditListingDataSuccess(ArrayList<SubredditData> subredditData, String after) {
-                                            adapter.setSubreddits(subredditData);
-                                        }
-
-                                        @Override
-                                        public void onParseSubredditListingDataFail() {
-
-                                        }
-                            });
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(@NonNull Call<String> call, @NonNull Throwable t) {
-
-                    }
-                });
             }
         });
         new MaterialAlertDialogBuilder(this, R.style.MaterialAlertDialogTheme)
