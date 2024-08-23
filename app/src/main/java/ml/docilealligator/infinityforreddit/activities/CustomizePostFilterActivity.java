@@ -33,7 +33,6 @@ import javax.inject.Named;
 import ml.docilealligator.infinityforreddit.Infinity;
 import ml.docilealligator.infinityforreddit.R;
 import ml.docilealligator.infinityforreddit.RedditDataRoomDatabase;
-import ml.docilealligator.infinityforreddit.account.Account;
 import ml.docilealligator.infinityforreddit.customtheme.CustomThemeWrapper;
 import ml.docilealligator.infinityforreddit.databinding.ActivityCustomizePostFilterBinding;
 import ml.docilealligator.infinityforreddit.postfilter.PostFilter;
@@ -55,7 +54,6 @@ public class CustomizePostFilterActivity extends BaseActivity {
     private static final String POST_FILTER_STATE = "PFS";
     private static final String ORIGINAL_NAME_STATE = "ONS";
     private static final int ADD_SUBREDDITS_REQUEST_CODE = 1;
-    private static final int ADD_SUBREDDITS_ANONYMOUS_REQUEST_CODE = 2;
     private static final int ADD_USERS_REQUEST_CODE = 3;
 
     @Inject
@@ -133,15 +131,8 @@ public class CustomizePostFilterActivity extends BaseActivity {
         });
 
         binding.addSubredditsImageViewCustomizePostFilterActivity.setOnClickListener(view -> {
-            if (accountName.equals(Account.ANONYMOUS_ACCOUNT)) {
-                Intent intent = new Intent(this, SearchActivity.class);
-                intent.putExtra(SearchActivity.EXTRA_SEARCH_ONLY_SUBREDDITS, true);
-                intent.putExtra(SearchActivity.EXTRA_IS_MULTI_SELECTION, true);
-                startActivityForResult(intent, ADD_SUBREDDITS_ANONYMOUS_REQUEST_CODE);
-            } else {
-                Intent intent = new Intent(this, SubredditMultiselectionActivity.class);
-                startActivityForResult(intent, ADD_SUBREDDITS_REQUEST_CODE);
-            }
+            Intent intent = new Intent(this, SubredditMultiselectionActivity.class);
+            startActivityForResult(intent, ADD_SUBREDDITS_REQUEST_CODE);
         });
 
         binding.addUsersImageViewCustomizePostFilterActivity.setOnClickListener(view -> {
@@ -263,9 +254,16 @@ public class CustomizePostFilterActivity extends BaseActivity {
                 binding.collapsingToolbarLayoutCustomizePostFilterActivity, binding.toolbarCustomizePostFilterActivity);
         int primaryTextColor = mCustomThemeWrapper.getPrimaryTextColor();
         int primaryIconColor = mCustomThemeWrapper.getPrimaryIconColor();
+        int filledCardViewBackgroundColor = mCustomThemeWrapper.getFilledCardViewBackgroundColor();
+
+        binding.nameCardViewCustomizePostFilterActivity.setCardBackgroundColor(filledCardViewBackgroundColor);
+        binding.nameExplanationTextViewCustomizePostFilterActivity.setTextColor(primaryTextColor);
         binding.nameTextInputLayoutCustomizePostFilterActivity.setBoxStrokeColor(primaryTextColor);
         binding.nameTextInputLayoutCustomizePostFilterActivity.setDefaultHintTextColor(ColorStateList.valueOf(primaryTextColor));
         binding.nameTextInputEditTextCustomizePostFilterActivity.setTextColor(primaryTextColor);
+
+        binding.postTypeCardViewCustomizePostFilterActivity.setCardBackgroundColor(filledCardViewBackgroundColor);
+        binding.postTypeExplanationTextViewCustomizePostFilterActivity.setTextColor(primaryTextColor);
         binding.postTypeTextTextViewCustomizePostFilterActivity.setCompoundDrawablesWithIntrinsicBounds(Utils.getTintedDrawable(this, R.drawable.ic_text_24dp, primaryIconColor), null, null, null);
         binding.postTypeTextTextViewCustomizePostFilterActivity.setTextColor(primaryTextColor);
         binding.postTypeLinkTextViewCustomizePostFilterActivity.setCompoundDrawablesWithIntrinsicBounds(Utils.getTintedDrawable(this, R.drawable.ic_link, primaryIconColor), null, null, null);
@@ -278,51 +276,89 @@ public class CustomizePostFilterActivity extends BaseActivity {
         binding.postTypeVideoTextViewCustomizePostFilterActivity.setTextColor(primaryTextColor);
         binding.postTypeGalleryTextViewCustomizePostFilterActivity.setCompoundDrawablesWithIntrinsicBounds(Utils.getTintedDrawable(this, R.drawable.ic_gallery_24dp, primaryIconColor), null, null, null);
         binding.postTypeGalleryTextViewCustomizePostFilterActivity.setTextColor(primaryTextColor);
+
+        binding.onlyNsfwSpoilerCardViewCustomizePostFilterActivity.setCardBackgroundColor(filledCardViewBackgroundColor);
+        binding.onlyNsfwSpoilerExplanationTextViewCustomizePostFilterActivity.setTextColor(primaryTextColor);
         binding.onlyNsfwTextViewCustomizePostFilterActivity.setCompoundDrawablesWithIntrinsicBounds(Utils.getTintedDrawable(this, R.drawable.ic_nsfw_on_24dp, primaryIconColor), null, null, null);
         binding.onlyNsfwTextViewCustomizePostFilterActivity.setTextColor(primaryTextColor);
         binding.onlySpoilerTextViewCustomizePostFilterActivity.setCompoundDrawablesWithIntrinsicBounds(Utils.getTintedDrawable(this, R.drawable.ic_spoiler_black_24dp, primaryIconColor), null, null, null);
         binding.onlySpoilerTextViewCustomizePostFilterActivity.setTextColor(primaryTextColor);
+
+        binding.titleStringsCardViewCustomizePostFilterActivity.setCardBackgroundColor(filledCardViewBackgroundColor);
+        binding.titleExcludeStringsExplanationTextViewCustomizePostFilterActivity.setTextColor(primaryTextColor);
         binding.titleExcludesStringsTextInputLayoutCustomizePostFilterActivity.setBoxStrokeColor(primaryTextColor);
         binding.titleExcludesStringsTextInputLayoutCustomizePostFilterActivity.setDefaultHintTextColor(ColorStateList.valueOf(primaryTextColor));
         binding.titleExcludesStringsTextInputEditTextCustomizePostFilterActivity.setTextColor(primaryTextColor);
+
+        binding.titleContainsStringsExplanationTextViewCustomizePostFilterActivity.setTextColor(primaryTextColor);
         binding.titleContainsStringsTextInputLayoutCustomizePostFilterActivity.setBoxStrokeColor(primaryTextColor);
         binding.titleContainsStringsTextInputLayoutCustomizePostFilterActivity.setDefaultHintTextColor(ColorStateList.valueOf(primaryTextColor));
         binding.titleContainsStringsTextInputEditTextCustomizePostFilterActivity.setTextColor(primaryTextColor);
+
+        binding.titleRegexCardViewCustomizePostFilterActivity.setCardBackgroundColor(filledCardViewBackgroundColor);
+        binding.titleExcludesRegexExplanationTextViewCustomizePostFilterActivity.setTextColor(primaryTextColor);
         binding.titleExcludesRegexTextInputLayoutCustomizePostFilterActivity.setBoxStrokeColor(primaryTextColor);
         binding.titleExcludesRegexTextInputLayoutCustomizePostFilterActivity.setDefaultHintTextColor(ColorStateList.valueOf(primaryTextColor));
         binding.titleExcludesRegexTextInputEditTextCustomizePostFilterActivity.setTextColor(primaryTextColor);
+
+        binding.titleContainsRegexExplanationTextViewCustomizePostFilterActivity.setTextColor(primaryTextColor);
         binding.titleContainsRegexTextInputLayoutCustomizePostFilterActivity.setBoxStrokeColor(primaryTextColor);
         binding.titleContainsRegexTextInputLayoutCustomizePostFilterActivity.setDefaultHintTextColor(ColorStateList.valueOf(primaryTextColor));
         binding.titleContainsRegexTextInputEditTextCustomizePostFilterActivity.setTextColor(primaryTextColor);
+
+        binding.subredditsUsersCardViewCustomizePostFilterActivity.setCardBackgroundColor(filledCardViewBackgroundColor);
+        binding.excludeSubredditsExplanationTextViewCustomizePostFilterActivity.setTextColor(primaryTextColor);
         binding.excludesSubredditsTextInputLayoutCustomizePostFilterActivity.setBoxStrokeColor(primaryTextColor);
         binding.excludesSubredditsTextInputLayoutCustomizePostFilterActivity.setDefaultHintTextColor(ColorStateList.valueOf(primaryTextColor));
         binding.excludesSubredditsTextInputEditTextCustomizePostFilterActivity.setTextColor(primaryTextColor);
         binding.addSubredditsImageViewCustomizePostFilterActivity.setImageDrawable(Utils.getTintedDrawable(this, R.drawable.ic_add_24dp, primaryIconColor));
+
+        binding.excludeUsersExplanationTextViewCustomizePostFilterActivity.setTextColor(primaryTextColor);
         binding.excludesUsersTextInputLayoutCustomizePostFilterActivity.setBoxStrokeColor(primaryTextColor);
         binding.excludesUsersTextInputLayoutCustomizePostFilterActivity.setDefaultHintTextColor(ColorStateList.valueOf(primaryTextColor));
         binding.excludesUsersTextInputEditTextCustomizePostFilterActivity.setTextColor(primaryTextColor);
         binding.addUsersImageViewCustomizePostFilterActivity.setImageDrawable(Utils.getTintedDrawable(this, R.drawable.ic_add_24dp, primaryIconColor));
+
+        binding.flairsCardViewCustomizePostFilterActivity.setCardBackgroundColor(filledCardViewBackgroundColor);
+        binding.excludeFlairsExplanationTextViewCustomizePostFilterActivity.setTextColor(primaryTextColor);
         binding.excludesFlairsTextInputLayoutCustomizePostFilterActivity.setBoxStrokeColor(primaryTextColor);
         binding.excludesFlairsTextInputLayoutCustomizePostFilterActivity.setDefaultHintTextColor(ColorStateList.valueOf(primaryTextColor));
         binding.excludesFlairsTextInputEditTextCustomizePostFilterActivity.setTextColor(primaryTextColor);
+
+        binding.containFlairsExplanationTextViewCustomizePostFilterActivity.setTextColor(primaryTextColor);
         binding.containsFlairsTextInputLayoutCustomizePostFilterActivity.setBoxStrokeColor(primaryTextColor);
         binding.containsFlairsTextInputLayoutCustomizePostFilterActivity.setDefaultHintTextColor(ColorStateList.valueOf(primaryTextColor));
         binding.containsFlairsTextInputEditTextCustomizePostFilterActivity.setTextColor(primaryTextColor);
+
+        binding.domainsCardViewCustomizePostFilterActivity.setCardBackgroundColor(filledCardViewBackgroundColor);
+        binding.excludeDomainsExplanationTextViewCustomizePostFilterActivity.setTextColor(primaryTextColor);
         binding.excludeDomainsTextInputLayoutCustomizePostFilterActivity.setBoxStrokeColor(primaryTextColor);
         binding.excludeDomainsTextInputLayoutCustomizePostFilterActivity.setDefaultHintTextColor(ColorStateList.valueOf(primaryTextColor));
         binding.excludeDomainsTextInputEditTextCustomizePostFilterActivity.setTextColor(primaryTextColor);
+
+        binding.containDomainsExplanationTextViewCustomizePostFilterActivity.setTextColor(primaryTextColor);
         binding.containDomainsTextInputLayoutCustomizePostFilterActivity.setBoxStrokeColor(primaryTextColor);
         binding.containDomainsTextInputLayoutCustomizePostFilterActivity.setDefaultHintTextColor(ColorStateList.valueOf(primaryTextColor));
         binding.containDomainsTextInputEditTextCustomizePostFilterActivity.setTextColor(primaryTextColor);
+
+        binding.voteCardViewCustomizePostFilterActivity.setCardBackgroundColor(filledCardViewBackgroundColor);
+        binding.minVoteExplanationTextViewCustomizePostFilterActivity.setTextColor(primaryTextColor);
         binding.minVoteTextInputLayoutCustomizePostFilterActivity.setBoxStrokeColor(primaryTextColor);
         binding.minVoteTextInputLayoutCustomizePostFilterActivity.setDefaultHintTextColor(ColorStateList.valueOf(primaryTextColor));
         binding.minVoteTextInputEditTextCustomizePostFilterActivity.setTextColor(primaryTextColor);
+
+        binding.maxVoteExplanationTextViewCustomizePostFilterActivity.setTextColor(primaryTextColor);
         binding.maxVoteTextInputLayoutCustomizePostFilterActivity.setBoxStrokeColor(primaryTextColor);
         binding.maxVoteTextInputLayoutCustomizePostFilterActivity.setDefaultHintTextColor(ColorStateList.valueOf(primaryTextColor));
         binding.maxVoteTextInputEditTextCustomizePostFilterActivity.setTextColor(primaryTextColor);
+
+        binding.commentsCardViewCustomizePostFilterActivity.setCardBackgroundColor(filledCardViewBackgroundColor);
+        binding.minCommentsExplanationTextViewCustomizePostFilterActivity.setTextColor(primaryTextColor);
         binding.minCommentsTextInputLayoutCustomizePostFilterActivity.setBoxStrokeColor(primaryTextColor);
         binding.minCommentsTextInputLayoutCustomizePostFilterActivity.setDefaultHintTextColor(ColorStateList.valueOf(primaryTextColor));
         binding.minCommentsTextInputEditTextCustomizePostFilterActivity.setTextColor(primaryTextColor);
+
+        binding.maxCommentsExplanationTextViewCustomizePostFilterActivity.setTextColor(primaryTextColor);
         binding.maxCommentsTextInputLayoutCustomizePostFilterActivity.setBoxStrokeColor(primaryTextColor);
         binding.maxCommentsTextInputLayoutCustomizePostFilterActivity.setDefaultHintTextColor(ColorStateList.valueOf(primaryTextColor));
         binding.maxCommentsTextInputEditTextCustomizePostFilterActivity.setTextColor(primaryTextColor);
@@ -472,9 +508,6 @@ public class CustomizePostFilterActivity extends BaseActivity {
         if (resultCode == RESULT_OK && data != null) {
             if (requestCode == ADD_SUBREDDITS_REQUEST_CODE) {
                 ArrayList<String> subredditNames = data.getStringArrayListExtra(SubredditMultiselectionActivity.EXTRA_RETURN_SELECTED_SUBREDDITS);
-                updateExcludeSubredditNames(subredditNames);
-            } else if (requestCode == ADD_SUBREDDITS_ANONYMOUS_REQUEST_CODE) {
-                ArrayList<String> subredditNames = data.getStringArrayListExtra(SearchActivity.RETURN_EXTRA_SELECTED_SUBREDDIT_NAMES);
                 updateExcludeSubredditNames(subredditNames);
             } else if (requestCode == ADD_USERS_REQUEST_CODE) {
                 ArrayList<String> usernames = data.getStringArrayListExtra(SearchActivity.RETURN_EXTRA_SELECTED_USERNAMES);
