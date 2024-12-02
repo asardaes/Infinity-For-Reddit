@@ -31,7 +31,6 @@ import ml.docilealligator.infinityforreddit.activities.LockScreenActivity;
 import ml.docilealligator.infinityforreddit.activities.LoginActivity;
 import ml.docilealligator.infinityforreddit.activities.LoginChromeCustomTabActivity;
 import ml.docilealligator.infinityforreddit.activities.MainActivity;
-import ml.docilealligator.infinityforreddit.activities.MultiredditSelectionActivity;
 import ml.docilealligator.infinityforreddit.activities.PostFilterPreferenceActivity;
 import ml.docilealligator.infinityforreddit.activities.PostFilterUsageListingActivity;
 import ml.docilealligator.infinityforreddit.activities.PostGalleryActivity;
@@ -52,7 +51,6 @@ import ml.docilealligator.infinityforreddit.activities.SendPrivateMessageActivit
 import ml.docilealligator.infinityforreddit.activities.SettingsActivity;
 import ml.docilealligator.infinityforreddit.activities.SubmitCrosspostActivity;
 import ml.docilealligator.infinityforreddit.activities.SubredditMultiselectionActivity;
-import ml.docilealligator.infinityforreddit.activities.SubredditSelectionActivity;
 import ml.docilealligator.infinityforreddit.activities.SubscribedThingListingActivity;
 import ml.docilealligator.infinityforreddit.activities.SuicidePreventionActivity;
 import ml.docilealligator.infinityforreddit.activities.ViewImageOrGifActivity;
@@ -106,6 +104,8 @@ import ml.docilealligator.infinityforreddit.settings.SecurityPreferenceFragment;
 import ml.docilealligator.infinityforreddit.settings.ThemePreferenceFragment;
 import ml.docilealligator.infinityforreddit.settings.TranslationFragment;
 import ml.docilealligator.infinityforreddit.settings.VideoPreferenceFragment;
+import ml.docilealligator.infinityforreddit.worker.MaterialYouWorker;
+import ml.docilealligator.infinityforreddit.worker.PullNotificationWorker;
 
 @Singleton
 @Component(modules = {AppModule.class, NetworkModule.class})
@@ -155,8 +155,6 @@ public interface AppComponent {
     void inject(SearchSubredditsResultActivity searchSubredditsResultActivity);
 
     void inject(FollowedUsersListingFragment followedUsersListingFragment);
-
-    void inject(SubredditSelectionActivity subredditSelectionActivity);
 
     void inject(EditPostActivity editPostActivity);
 
@@ -263,8 +261,6 @@ public interface AppComponent {
     void inject(PostFilterUsageListingActivity postFilterUsageListingActivity);
 
     void inject(SearchUsersResultActivity searchUsersResultActivity);
-
-    void inject(MultiredditSelectionActivity multiredditSelectionActivity);
 
     void inject(ViewImgurImageFragment viewImgurImageFragment);
 

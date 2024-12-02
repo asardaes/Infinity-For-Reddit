@@ -25,12 +25,11 @@ import javax.inject.Named;
 
 import ml.docilealligator.infinityforreddit.Infinity;
 import ml.docilealligator.infinityforreddit.R;
-import ml.docilealligator.infinityforreddit.SelectThingReturnKey;
+import ml.docilealligator.infinityforreddit.thing.SelectThingReturnKey;
 import ml.docilealligator.infinityforreddit.account.Account;
-import ml.docilealligator.infinityforreddit.activities.MultiredditSelectionActivity;
 import ml.docilealligator.infinityforreddit.activities.SearchActivity;
 import ml.docilealligator.infinityforreddit.activities.SettingsActivity;
-import ml.docilealligator.infinityforreddit.activities.SubredditSelectionActivity;
+import ml.docilealligator.infinityforreddit.activities.SubscribedThingListingActivity;
 import ml.docilealligator.infinityforreddit.databinding.FragmentCustomizeMainPageTabsBinding;
 import ml.docilealligator.infinityforreddit.multireddit.MultiReddit;
 import ml.docilealligator.infinityforreddit.utils.SharedPreferencesUtils;
@@ -402,7 +401,7 @@ public class CustomizeMainPageTabsFragment extends Fragment {
         int colorAccent = activity.customThemeWrapper.getColorAccent();
         int primaryIconColor = activity.customThemeWrapper.getPrimaryIconColor();
         binding.infoTextViewCustomizeMainPageTabsFragment.setTextColor(secondaryTextColor);
-        Drawable infoDrawable = Utils.getTintedDrawable(activity, R.drawable.ic_info_preference_24dp, secondaryTextColor);
+        Drawable infoDrawable = Utils.getTintedDrawable(activity, R.drawable.ic_info_preference_day_night_24dp, secondaryTextColor);
         binding.infoTextViewCustomizeMainPageTabsFragment.setCompoundDrawablesWithIntrinsicBounds(infoDrawable, null, null, null);
         binding.tabCountTitleTextViewCustomizeMainPageTabsFragment.setTextColor(primaryTextColor);
         binding.tabCountTextViewCustomizeMainPageTabsFragment.setTextColor(secondaryTextColor);
@@ -502,12 +501,18 @@ public class CustomizeMainPageTabsFragment extends Fragment {
             case 0:
                 switch (tab1CurrentPostType) {
                     case 3: {
-                        Intent intent = new Intent(activity, SubredditSelectionActivity.class);
+                        Intent intent = new Intent(activity, SubscribedThingListingActivity.class);
+                        intent.putExtra(SubscribedThingListingActivity.EXTRA_THING_SELECTION_MODE, true);
+                        intent.putExtra(SubscribedThingListingActivity.EXTRA_THING_SELECTION_TYPE,
+                                SubscribedThingListingActivity.EXTRA_THING_SELECTION_TYPE_SUBREDDIT);
                         startActivityForResult(intent, tab);
                         break;
                     }
                     case 4: {
-                        Intent intent = new Intent(activity, MultiredditSelectionActivity.class);
+                        Intent intent = new Intent(activity, SubscribedThingListingActivity.class);
+                        intent.putExtra(SubscribedThingListingActivity.EXTRA_THING_SELECTION_MODE, true);
+                        intent.putExtra(SubscribedThingListingActivity.EXTRA_THING_SELECTION_TYPE,
+                                SubscribedThingListingActivity.EXTRA_THING_SELECTION_TYPE_MULTIREDDIT);
                         startActivityForResult(intent, tab);
                         break;
                     }
@@ -522,12 +527,18 @@ public class CustomizeMainPageTabsFragment extends Fragment {
             case 1:
                 switch (tab2CurrentPostType) {
                     case 3: {
-                        Intent intent = new Intent(activity, SubredditSelectionActivity.class);
+                        Intent intent = new Intent(activity, SubscribedThingListingActivity.class);
+                        intent.putExtra(SubscribedThingListingActivity.EXTRA_THING_SELECTION_MODE, true);
+                        intent.putExtra(SubscribedThingListingActivity.EXTRA_THING_SELECTION_TYPE,
+                                SubscribedThingListingActivity.EXTRA_THING_SELECTION_TYPE_SUBREDDIT);
                         startActivityForResult(intent, tab);
                         break;
                     }
                     case 4: {
-                        Intent intent = new Intent(activity, MultiredditSelectionActivity.class);
+                        Intent intent = new Intent(activity, SubscribedThingListingActivity.class);
+                        intent.putExtra(SubscribedThingListingActivity.EXTRA_THING_SELECTION_MODE, true);
+                        intent.putExtra(SubscribedThingListingActivity.EXTRA_THING_SELECTION_TYPE,
+                                SubscribedThingListingActivity.EXTRA_THING_SELECTION_TYPE_MULTIREDDIT);
                         startActivityForResult(intent, tab);
                         break;
                     }
@@ -542,12 +553,18 @@ public class CustomizeMainPageTabsFragment extends Fragment {
             case 2:
                 switch (tab3CurrentPostType) {
                     case 3: {
-                        Intent intent = new Intent(activity, SubredditSelectionActivity.class);
+                        Intent intent = new Intent(activity, SubscribedThingListingActivity.class);
+                        intent.putExtra(SubscribedThingListingActivity.EXTRA_THING_SELECTION_MODE, true);
+                        intent.putExtra(SubscribedThingListingActivity.EXTRA_THING_SELECTION_TYPE,
+                                SubscribedThingListingActivity.EXTRA_THING_SELECTION_TYPE_SUBREDDIT);
                         startActivityForResult(intent, tab);
                         break;
                     }
                     case 4: {
-                        Intent intent = new Intent(activity, MultiredditSelectionActivity.class);
+                        Intent intent = new Intent(activity, SubscribedThingListingActivity.class);
+                        intent.putExtra(SubscribedThingListingActivity.EXTRA_THING_SELECTION_MODE, true);
+                        intent.putExtra(SubscribedThingListingActivity.EXTRA_THING_SELECTION_TYPE,
+                                SubscribedThingListingActivity.EXTRA_THING_SELECTION_TYPE_MULTIREDDIT);
                         startActivityForResult(intent, tab);
                         break;
                     }
@@ -573,7 +590,7 @@ public class CustomizeMainPageTabsFragment extends Fragment {
                         tab1CurrentName = data.getStringExtra(SelectThingReturnKey.RETURN_EXTRA_SUBREDDIT_OR_USER_NAME);
                         binding.tab1NameSummaryTextViewCustomizeMainPageTabsFragment.setText(tab1CurrentName);
                         mainActivityTabsSharedPreferences.edit().putString((activity.accountName.equals(Account.ANONYMOUS_ACCOUNT) ? "" : activity.accountName) + SharedPreferencesUtils.MAIN_PAGE_TAB_1_NAME, tab1CurrentName).apply();
-                    } else if (data.hasExtra(SelectThingReturnKey.RETRUN_EXTRA_MULTIREDDIT)) {
+                    } else if (thingType == SelectThingReturnKey.THING_TYPE.MULTIREDDIT) {
                         MultiReddit multireddit = data.getParcelableExtra(SelectThingReturnKey.RETRUN_EXTRA_MULTIREDDIT);
                         if (multireddit != null) {
                             tab1CurrentName = multireddit.getPath();
@@ -591,7 +608,7 @@ public class CustomizeMainPageTabsFragment extends Fragment {
                         tab2CurrentName = data.getStringExtra(SelectThingReturnKey.RETURN_EXTRA_SUBREDDIT_OR_USER_NAME);
                         binding.tab2NameSummaryTextViewCustomizeMainPageTabsFragment.setText(tab2CurrentName);
                         mainActivityTabsSharedPreferences.edit().putString((activity.accountName.equals(Account.ANONYMOUS_ACCOUNT) ? "" : activity.accountName) + SharedPreferencesUtils.MAIN_PAGE_TAB_2_NAME, tab2CurrentName).apply();
-                    } else if (data.hasExtra(SelectThingReturnKey.RETRUN_EXTRA_MULTIREDDIT)) {
+                    } else if (thingType == SelectThingReturnKey.THING_TYPE.MULTIREDDIT) {
                         MultiReddit multireddit = data.getParcelableExtra(SelectThingReturnKey.RETRUN_EXTRA_MULTIREDDIT);
                         if (multireddit != null) {
                             tab2CurrentName = multireddit.getPath();
@@ -609,7 +626,7 @@ public class CustomizeMainPageTabsFragment extends Fragment {
                         tab3CurrentName = data.getStringExtra(SelectThingReturnKey.RETURN_EXTRA_SUBREDDIT_OR_USER_NAME);
                         binding.tab3NameSummaryTextViewCustomizeMainPageTabsFragment.setText(tab3CurrentName);
                         mainActivityTabsSharedPreferences.edit().putString((activity.accountName.equals(Account.ANONYMOUS_ACCOUNT) ? "" : activity.accountName) + SharedPreferencesUtils.MAIN_PAGE_TAB_3_NAME, tab3CurrentName).apply();
-                    } else if (data.hasExtra(SelectThingReturnKey.RETRUN_EXTRA_MULTIREDDIT)) {
+                    } else if (thingType == SelectThingReturnKey.THING_TYPE.MULTIREDDIT) {
                         MultiReddit multireddit = data.getParcelableExtra(SelectThingReturnKey.RETRUN_EXTRA_MULTIREDDIT);
                         if (multireddit != null) {
                             tab3CurrentName = multireddit.getPath();

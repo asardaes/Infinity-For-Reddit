@@ -41,11 +41,11 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import jp.wasabeef.glide.transformations.RoundedCornersTransformation;
-import ml.docilealligator.infinityforreddit.Flair;
+import ml.docilealligator.infinityforreddit.subreddit.Flair;
 import ml.docilealligator.infinityforreddit.Infinity;
 import ml.docilealligator.infinityforreddit.R;
 import ml.docilealligator.infinityforreddit.RedditDataRoomDatabase;
-import ml.docilealligator.infinityforreddit.SelectThingReturnKey;
+import ml.docilealligator.infinityforreddit.thing.SelectThingReturnKey;
 import ml.docilealligator.infinityforreddit.account.Account;
 import ml.docilealligator.infinityforreddit.asynctasks.LoadSubredditIcon;
 import ml.docilealligator.infinityforreddit.bottomsheetfragments.AccountChooserBottomSheetFragment;
@@ -254,7 +254,7 @@ public class SubmitCrosspostActivity extends BaseActivity implements FlairBottom
                     binding.playButtonImageViewSubmitCrosspostActivity.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_play_circle_36dp));
                 } else if (post.getPostType() == Post.GALLERY_TYPE) {
                     binding.playButtonImageViewSubmitCrosspostActivity.setVisibility(View.VISIBLE);
-                    binding.playButtonImageViewSubmitCrosspostActivity.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_gallery_24dp));
+                    binding.playButtonImageViewSubmitCrosspostActivity.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_gallery_day_night_24dp));
                 }
             }
         }
@@ -269,8 +269,11 @@ public class SubmitCrosspostActivity extends BaseActivity implements FlairBottom
         });
 
         binding.subredditNameTextViewSubmitCrosspostActivity.setOnClickListener(view -> {
-            Intent intent = new Intent(this, SubredditSelectionActivity.class);
-            intent.putExtra(SubredditSelectionActivity.EXTRA_SPECIFIED_ACCOUNT, selectedAccount);
+            Intent intent = new Intent(this, SubscribedThingListingActivity.class);
+            intent.putExtra(SubscribedThingListingActivity.EXTRA_SPECIFIED_ACCOUNT, selectedAccount);
+            intent.putExtra(SubscribedThingListingActivity.EXTRA_THING_SELECTION_MODE, true);
+            intent.putExtra(SubscribedThingListingActivity.EXTRA_THING_SELECTION_TYPE,
+                    SubscribedThingListingActivity.EXTRA_THING_SELECTION_TYPE_SUBREDDIT);
             startActivityForResult(intent, SUBREDDIT_SELECTION_REQUEST_CODE);
         });
 

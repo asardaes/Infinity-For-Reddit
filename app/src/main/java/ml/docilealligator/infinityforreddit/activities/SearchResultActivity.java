@@ -38,15 +38,14 @@ import java.util.concurrent.Executor;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import ml.docilealligator.infinityforreddit.ActivityToolbarInterface;
-import ml.docilealligator.infinityforreddit.FragmentCommunicator;
+import ml.docilealligator.infinityforreddit.fragments.FragmentCommunicator;
 import ml.docilealligator.infinityforreddit.Infinity;
 import ml.docilealligator.infinityforreddit.R;
 import ml.docilealligator.infinityforreddit.RecyclerViewContentScrollingInterface;
 import ml.docilealligator.infinityforreddit.RedditDataRoomDatabase;
-import ml.docilealligator.infinityforreddit.SelectThingReturnKey;
-import ml.docilealligator.infinityforreddit.SortType;
-import ml.docilealligator.infinityforreddit.SortTypeSelectionCallback;
+import ml.docilealligator.infinityforreddit.thing.SelectThingReturnKey;
+import ml.docilealligator.infinityforreddit.thing.SortType;
+import ml.docilealligator.infinityforreddit.thing.SortTypeSelectionCallback;
 import ml.docilealligator.infinityforreddit.account.Account;
 import ml.docilealligator.infinityforreddit.adapters.SubredditAutocompleteRecyclerViewAdapter;
 import ml.docilealligator.infinityforreddit.apis.RedditAPI;
@@ -279,49 +278,52 @@ public class SearchResultActivity extends BaseActivity implements SortTypeSelect
         fabOption = bottomAppBarSharedPreference.getInt(SharedPreferencesUtils.OTHER_ACTIVITIES_BOTTOM_APP_BAR_FAB, SharedPreferencesUtils.OTHER_ACTIVITIES_BOTTOM_APP_BAR_FAB_SUBMIT_POSTS);
         switch (fabOption) {
             case SharedPreferencesUtils.OTHER_ACTIVITIES_BOTTOM_APP_BAR_FAB_REFRESH:
-                binding.fabSearchResultActivity.setImageResource(R.drawable.ic_refresh_24dp);
+                binding.fabSearchResultActivity.setImageResource(R.drawable.ic_refresh_day_night_24dp);
                 break;
             case SharedPreferencesUtils.OTHER_ACTIVITIES_BOTTOM_APP_BAR_FAB_CHANGE_SORT_TYPE:
                 binding.fabSearchResultActivity.setImageResource(R.drawable.ic_sort_toolbar_24dp);
                 break;
             case SharedPreferencesUtils.OTHER_ACTIVITIES_BOTTOM_APP_BAR_FAB_CHANGE_POST_LAYOUT:
-                binding.fabSearchResultActivity.setImageResource(R.drawable.ic_post_layout_24dp);
+                binding.fabSearchResultActivity.setImageResource(R.drawable.ic_post_layout_day_night_24dp);
                 break;
             case SharedPreferencesUtils.OTHER_ACTIVITIES_BOTTOM_APP_BAR_FAB_SEARCH:
-                binding.fabSearchResultActivity.setImageResource(R.drawable.ic_search_24dp);
+                binding.fabSearchResultActivity.setImageResource(R.drawable.ic_search_day_night_24dp);
                 break;
             case SharedPreferencesUtils.OTHER_ACTIVITIES_BOTTOM_APP_BAR_FAB_GO_TO_SUBREDDIT:
-                binding.fabSearchResultActivity.setImageResource(R.drawable.ic_subreddit_24dp);
+                binding.fabSearchResultActivity.setImageResource(R.drawable.ic_subreddit_day_night_24dp);
                 break;
             case SharedPreferencesUtils.OTHER_ACTIVITIES_BOTTOM_APP_BAR_FAB_GO_TO_USER:
-                binding.fabSearchResultActivity.setImageResource(R.drawable.ic_user_24dp);
+                binding.fabSearchResultActivity.setImageResource(R.drawable.ic_user_day_night_24dp);
                 break;
             case SharedPreferencesUtils.OTHER_ACTIVITIES_BOTTOM_APP_BAR_FAB_RANDOM:
-                binding.fabSearchResultActivity.setImageResource(R.drawable.ic_random_24dp);
+                binding.fabSearchResultActivity.setImageResource(R.drawable.ic_random_day_night_24dp);
                 break;
             case SharedPreferencesUtils.OTHER_ACTIVITIES_BOTTOM_APP_BAR_FAB_HIDE_READ_POSTS:
                 if (accountName.equals(Account.ANONYMOUS_ACCOUNT)) {
-                    binding.fabSearchResultActivity.setImageResource(R.drawable.ic_filter_24dp);
+                    binding.fabSearchResultActivity.setImageResource(R.drawable.ic_filter_day_night_24dp);
                     fabOption = SharedPreferencesUtils.OTHER_ACTIVITIES_BOTTOM_APP_BAR_FAB_FILTER_POSTS;
                 } else {
-                    binding.fabSearchResultActivity.setImageResource(R.drawable.ic_hide_read_posts_24dp);
+                    binding.fabSearchResultActivity.setImageResource(R.drawable.ic_hide_read_posts_day_night_24dp);
                 }
                 break;
             case SharedPreferencesUtils.OTHER_ACTIVITIES_BOTTOM_APP_BAR_FAB_FILTER_POSTS:
-                binding.fabSearchResultActivity.setImageResource(R.drawable.ic_filter_24dp);
+                binding.fabSearchResultActivity.setImageResource(R.drawable.ic_filter_day_night_24dp);
                 break;
             case SharedPreferencesUtils.OTHER_ACTIVITIES_BOTTOM_APP_BAR_FAB_GO_TO_TOP:
-                binding.fabSearchResultActivity.setImageResource(R.drawable.ic_keyboard_double_arrow_up_24);
+                binding.fabSearchResultActivity.setImageResource(R.drawable.ic_keyboard_double_arrow_up_day_night_24dp);
                 break;
             default:
                 if (accountName.equals(Account.ANONYMOUS_ACCOUNT)) {
-                    binding.fabSearchResultActivity.setImageResource(R.drawable.ic_filter_24dp);
+                    binding.fabSearchResultActivity.setImageResource(R.drawable.ic_filter_day_night_24dp);
                     fabOption = SharedPreferencesUtils.OTHER_ACTIVITIES_BOTTOM_APP_BAR_FAB_FILTER_POSTS;
                 } else {
                     binding.fabSearchResultActivity.setImageResource(R.drawable.ic_add_day_night_24dp);
                 }
                 break;
         }
+
+        setOtherActivitiesFabContentDescription(binding.fabSearchResultActivity, fabOption);
+
         binding.fabSearchResultActivity.setOnClickListener(view -> {
             switch (fabOption) {
                 case SharedPreferencesUtils.OTHER_ACTIVITIES_BOTTOM_APP_BAR_FAB_REFRESH: {

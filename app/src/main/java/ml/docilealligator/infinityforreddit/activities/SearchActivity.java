@@ -41,7 +41,7 @@ import javax.inject.Named;
 import ml.docilealligator.infinityforreddit.Infinity;
 import ml.docilealligator.infinityforreddit.R;
 import ml.docilealligator.infinityforreddit.RedditDataRoomDatabase;
-import ml.docilealligator.infinityforreddit.SelectThingReturnKey;
+import ml.docilealligator.infinityforreddit.thing.SelectThingReturnKey;
 import ml.docilealligator.infinityforreddit.account.Account;
 import ml.docilealligator.infinityforreddit.adapters.SearchActivityRecyclerViewAdapter;
 import ml.docilealligator.infinityforreddit.adapters.SubredditAutocompleteRecyclerViewAdapter;
@@ -335,10 +335,12 @@ public class SearchActivity extends BaseActivity {
 
         if (searchOnlySubreddits || searchOnlyUsers || searchSubredditsAndUsers) {
             binding.subredditNameRelativeLayoutSearchActivity.setVisibility(View.GONE);
+            binding.dividerSearchActivity.setVisibility(View.GONE);
         } else {
             binding.subredditNameRelativeLayoutSearchActivity.setOnClickListener(view -> {
                 Intent intent = new Intent(this, SubscribedThingListingActivity.class);
                 intent.putExtra(SubscribedThingListingActivity.EXTRA_THING_SELECTION_MODE, true);
+                intent.putExtra(SubscribedThingListingActivity.EXTRA_EXTRA_CLEAR_SELECTION, true);
                 requestThingSelectionForCurrentActivityLauncher.launch(intent);
             });
         }
@@ -348,14 +350,19 @@ public class SearchActivity extends BaseActivity {
         if (!accountName.equals(Account.ANONYMOUS_ACCOUNT)) {
             adapter = new SearchActivityRecyclerViewAdapter(this, mCustomThemeWrapper, new SearchActivityRecyclerViewAdapter.ItemOnClickListener() {
                 @Override
-                public void onClick(RecentSearchQuery recentSearchQuery) {
-                    searchInSubredditOrUserName = recentSearchQuery.getSearchInSubredditOrUserName();
-                    searchInMultiReddit = MultiReddit.getDummyMultiReddit(recentSearchQuery.getMultiRedditPath());
-                    if (searchInMultiReddit != null && recentSearchQuery.getMultiRedditDisplayName() != null) {
-                        searchInMultiReddit.setDisplayName(recentSearchQuery.getMultiRedditDisplayName());
+                public void onClick(RecentSearchQuery recentSearchQuery, boolean searchImmediately) {
+                    if (searchImmediately) {
+                        searchInSubredditOrUserName = recentSearchQuery.getSearchInSubredditOrUserName();
+                        searchInMultiReddit = MultiReddit.getDummyMultiReddit(recentSearchQuery.getMultiRedditPath());
+                        if (searchInMultiReddit != null && recentSearchQuery.getMultiRedditDisplayName() != null) {
+                            searchInMultiReddit.setDisplayName(recentSearchQuery.getMultiRedditDisplayName());
+                        }
+                        searchInThingType = recentSearchQuery.getSearchInThingType();
+                        search(recentSearchQuery.getSearchQuery());
+                    } else {
+                        binding.searchEditTextSearchActivity.setText(recentSearchQuery.getSearchQuery());
+                        binding.searchEditTextSearchActivity.setSelection(recentSearchQuery.getSearchQuery().length());
                     }
-                    searchInThingType = recentSearchQuery.getSearchInThingType();
-                    search(recentSearchQuery.getSearchQuery());
                 }
 
                 @Override
@@ -395,7 +402,7 @@ public class SearchActivity extends BaseActivity {
                         outRect.left = halfSpacing;
                         outRect.right = spacing;
                     }
-                    outRect.bottom = spacing;
+                    outRect.top = spacing;
                 }
             });
 
@@ -408,8 +415,10 @@ public class SearchActivity extends BaseActivity {
 
                 mRecentSearchQueryViewModel.getAllRecentSearchQueries().observe(this, recentSearchQueries -> {
                     if (recentSearchQueries != null && !recentSearchQueries.isEmpty()) {
+                        binding.dividerSearchActivity.setVisibility(View.VISIBLE);
                         binding.deleteAllRecentSearchesButtonSearchActivity.setVisibility(View.VISIBLE);
                     } else {
+                        binding.dividerSearchActivity.setVisibility(View.GONE);
                         binding.deleteAllRecentSearchesButtonSearchActivity.setVisibility(View.GONE);
                     }
                     adapter.setRecentSearchQueries(recentSearchQueries);
@@ -497,8 +506,9 @@ public class SearchActivity extends BaseActivity {
         binding.linkHandlerImageViewSearchActivity.setColorFilter(mCustomThemeWrapper.getToolbarPrimaryTextAndIconColor(), android.graphics.PorterDuff.Mode.SRC_IN);
         int colorAccent = mCustomThemeWrapper.getColorAccent();
         binding.searchInTextViewSearchActivity.setTextColor(colorAccent);
-        binding.deleteAllRecentSearchesButtonSearchActivity.setIconTint(ColorStateList.valueOf(mCustomThemeWrapper.getPrimaryIconColor()));
         binding.subredditNameTextViewSearchActivity.setTextColor(mCustomThemeWrapper.getPrimaryTextColor());
+        binding.deleteAllRecentSearchesButtonSearchActivity.setIconTint(ColorStateList.valueOf(mCustomThemeWrapper.getPrimaryIconColor()));
+        binding.dividerSearchActivity.setBackgroundColor(mCustomThemeWrapper.getDividerColor());
         if (typeface != null) {
             Utils.setFontToAllTextViews(binding.getRoot(), typeface);
         }

@@ -64,23 +64,17 @@ import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import ml.docilealligator.infinityforreddit.ActivityToolbarInterface;
-import ml.docilealligator.infinityforreddit.FetchSubscribedThing;
 import ml.docilealligator.infinityforreddit.Infinity;
-import ml.docilealligator.infinityforreddit.MarkPostAsReadInterface;
-import ml.docilealligator.infinityforreddit.PullNotificationWorker;
 import ml.docilealligator.infinityforreddit.R;
 import ml.docilealligator.infinityforreddit.RecyclerViewContentScrollingInterface;
 import ml.docilealligator.infinityforreddit.RedditDataRoomDatabase;
-import ml.docilealligator.infinityforreddit.SortType;
-import ml.docilealligator.infinityforreddit.SortTypeSelectionCallback;
 import ml.docilealligator.infinityforreddit.account.Account;
 import ml.docilealligator.infinityforreddit.account.AccountViewModel;
 import ml.docilealligator.infinityforreddit.adapters.SubredditAutocompleteRecyclerViewAdapter;
 import ml.docilealligator.infinityforreddit.adapters.navigationdrawer.NavigationDrawerRecyclerViewMergedAdapter;
 import ml.docilealligator.infinityforreddit.apis.RedditAPI;
-import ml.docilealligator.infinityforreddit.asynctasks.InsertSubscribedThings;
 import ml.docilealligator.infinityforreddit.asynctasks.AccountManagement;
+import ml.docilealligator.infinityforreddit.asynctasks.InsertSubscribedThings;
 import ml.docilealligator.infinityforreddit.bottomsheetfragments.FABMoreOptionsBottomSheetFragment;
 import ml.docilealligator.infinityforreddit.bottomsheetfragments.PostLayoutBottomSheetFragment;
 import ml.docilealligator.infinityforreddit.bottomsheetfragments.PostTypeBottomSheetFragment;
@@ -106,20 +100,26 @@ import ml.docilealligator.infinityforreddit.fragments.PostFragment;
 import ml.docilealligator.infinityforreddit.message.ReadMessage;
 import ml.docilealligator.infinityforreddit.multireddit.MultiReddit;
 import ml.docilealligator.infinityforreddit.multireddit.MultiRedditViewModel;
+import ml.docilealligator.infinityforreddit.post.MarkPostAsReadInterface;
 import ml.docilealligator.infinityforreddit.post.Post;
 import ml.docilealligator.infinityforreddit.post.PostPagingSource;
 import ml.docilealligator.infinityforreddit.readpost.InsertReadPost;
+import ml.docilealligator.infinityforreddit.readpost.ReadPostsUtils;
 import ml.docilealligator.infinityforreddit.subreddit.ParseSubredditData;
 import ml.docilealligator.infinityforreddit.subreddit.SubredditData;
 import ml.docilealligator.infinityforreddit.subscribedsubreddit.SubscribedSubredditData;
 import ml.docilealligator.infinityforreddit.subscribedsubreddit.SubscribedSubredditViewModel;
 import ml.docilealligator.infinityforreddit.subscribeduser.SubscribedUserData;
+import ml.docilealligator.infinityforreddit.thing.FetchSubscribedThing;
+import ml.docilealligator.infinityforreddit.thing.SortType;
+import ml.docilealligator.infinityforreddit.thing.SortTypeSelectionCallback;
 import ml.docilealligator.infinityforreddit.user.FetchUserData;
 import ml.docilealligator.infinityforreddit.user.UserData;
 import ml.docilealligator.infinityforreddit.utils.APIUtils;
 import ml.docilealligator.infinityforreddit.utils.CustomThemeSharedPreferencesUtils;
 import ml.docilealligator.infinityforreddit.utils.SharedPreferencesUtils;
 import ml.docilealligator.infinityforreddit.utils.Utils;
+import ml.docilealligator.infinityforreddit.worker.PullNotificationWorker;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -154,6 +154,9 @@ public class MainActivity extends BaseActivity implements SortTypeSelectionCallb
     @Inject
     @Named("sort_type")
     SharedPreferences mSortTypeSharedPreferences;
+    @Inject
+    @Named("post_history")
+    SharedPreferences mPostHistorySharedPreferences;
     @Inject
     @Named("post_layout")
     SharedPreferences mPostLayoutSharedPreferences;
@@ -510,43 +513,43 @@ public class MainActivity extends BaseActivity implements SortTypeSelectionCallb
     private int getBottomAppBarOptionDrawableResource(int option) {
         switch (option) {
             case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_SUBSCRIPTIONS:
-                return R.drawable.ic_subscritptions_bottom_app_bar_24dp;
+                return R.drawable.ic_subscriptions_bottom_app_bar_day_night_24dp;
             case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_MULTIREDDITS:
-                return R.drawable.ic_multi_reddit_24dp;
+                return R.drawable.ic_multi_reddit_day_night_24dp;
             case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_INBOX:
-                return R.drawable.ic_inbox_24dp;
+                return R.drawable.ic_inbox_day_night_24dp;
             case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_SUBMIT_POSTS:
                 return R.drawable.ic_add_day_night_24dp;
             case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_REFRESH:
-                return R.drawable.ic_refresh_24dp;
+                return R.drawable.ic_refresh_day_night_24dp;
             case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_CHANGE_SORT_TYPE:
                 return R.drawable.ic_sort_toolbar_24dp;
             case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_CHANGE_POST_LAYOUT:
-                return R.drawable.ic_post_layout_24dp;
+                return R.drawable.ic_post_layout_day_night_24dp;
             case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_SEARCH:
-                return R.drawable.ic_search_24dp;
+                return R.drawable.ic_search_day_night_24dp;
             case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_GO_TO_SUBREDDIT:
-                return R.drawable.ic_subreddit_24dp;
+                return R.drawable.ic_subreddit_day_night_24dp;
             case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_GO_TO_USER:
-                return R.drawable.ic_user_24dp;
+                return R.drawable.ic_user_day_night_24dp;
             case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_RANDOM:
-                return R.drawable.ic_random_24dp;
+                return R.drawable.ic_random_day_night_24dp;
             case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_HIDE_READ_POSTS:
-                return R.drawable.ic_hide_read_posts_24dp;
+                return R.drawable.ic_hide_read_posts_day_night_24dp;
             case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_FILTER_POSTS:
-                return R.drawable.ic_filter_24dp;
+                return R.drawable.ic_filter_day_night_24dp;
             case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_UPVOTED:
-                return R.drawable.ic_arrow_upward_black_24dp;
+                return R.drawable.ic_arrow_upward_day_night_24dp;
             case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_DOWNVOTED:
-                return R.drawable.ic_arrow_downward_black_24dp;
+                return R.drawable.ic_arrow_downward_day_night_24dp;
             case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_HIDDEN:
-                return R.drawable.ic_outline_lock_24dp;
+                return R.drawable.ic_lock_day_night_24dp;
             case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_SAVED:
-                return R.drawable.ic_outline_bookmarks_24dp;
+                return R.drawable.ic_bookmarks_day_night_24dp;
             case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_GO_TO_TOP:
-                return R.drawable.ic_keyboard_double_arrow_up_24;
+                return R.drawable.ic_keyboard_double_arrow_up_day_night_24dp;
             default:
-                return R.drawable.ic_account_circle_24dp;
+                return R.drawable.ic_account_circle_day_night_24dp;
         }
     }
 
@@ -571,6 +574,9 @@ public class MainActivity extends BaseActivity implements SortTypeSelectionCallb
                     navigationWrapper.option4BottomAppBar.setOnClickListener(view -> {
                         bottomAppBarOptionAction(option2);
                     });
+
+                    setBottomAppBarContentDescription(navigationWrapper.option2BottomAppBar, option1);
+                    setBottomAppBarContentDescription(navigationWrapper.option4BottomAppBar, option2);
                 } else {
                     navigationWrapper.navigationRailView.setOnItemSelectedListener(item -> {
                         int itemId = item.getItemId();
@@ -608,6 +614,11 @@ public class MainActivity extends BaseActivity implements SortTypeSelectionCallb
                     navigationWrapper.option4BottomAppBar.setOnClickListener(view -> {
                         bottomAppBarOptionAction(option4);
                     });
+
+                    setBottomAppBarContentDescription(navigationWrapper.option1BottomAppBar, option1);
+                    setBottomAppBarContentDescription(navigationWrapper.option2BottomAppBar, option2);
+                    setBottomAppBarContentDescription(navigationWrapper.option3BottomAppBar, option3);
+                    setBottomAppBarContentDescription(navigationWrapper.option4BottomAppBar, option4);
                 } else {
                     navigationWrapper.navigationRailView.setOnItemSelectedListener(item -> {
                         int itemId = item.getItemId();
@@ -639,46 +650,59 @@ public class MainActivity extends BaseActivity implements SortTypeSelectionCallb
                 SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_FAB_SUBMIT_POSTS);
         switch (fabOption) {
             case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_FAB_REFRESH:
-                navigationWrapper.floatingActionButton.setImageResource(R.drawable.ic_refresh_24dp);
+                navigationWrapper.floatingActionButton.setImageResource(R.drawable.ic_refresh_day_night_24dp);
+                navigationWrapper.floatingActionButton.setContentDescription(getString(R.string.content_description_refresh));
                 break;
             case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_FAB_CHANGE_SORT_TYPE:
                 navigationWrapper.floatingActionButton.setImageResource(R.drawable.ic_sort_toolbar_24dp);
+                navigationWrapper.floatingActionButton.setContentDescription(getString(R.string.content_description_change_sort_type));
                 break;
             case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_FAB_CHANGE_POST_LAYOUT:
-                navigationWrapper.floatingActionButton.setImageResource(R.drawable.ic_post_layout_24dp);
+                navigationWrapper.floatingActionButton.setImageResource(R.drawable.ic_post_layout_day_night_24dp);
+                navigationWrapper.floatingActionButton.setContentDescription(getString(R.string.content_description_change_post_layout));
                 break;
             case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_FAB_SEARCH:
-                navigationWrapper.floatingActionButton.setImageResource(R.drawable.ic_search_24dp);
+                navigationWrapper.floatingActionButton.setImageResource(R.drawable.ic_search_day_night_24dp);
+                navigationWrapper.floatingActionButton.setContentDescription(getString(R.string.content_description_search));
                 break;
             case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_FAB_GO_TO_SUBREDDIT:
-                navigationWrapper.floatingActionButton.setImageResource(R.drawable.ic_subreddit_24dp);
+                navigationWrapper.floatingActionButton.setImageResource(R.drawable.ic_subreddit_day_night_24dp);
+                navigationWrapper.floatingActionButton.setContentDescription(getString(R.string.content_description_go_to_subreddit));
                 break;
             case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_FAB_GO_TO_USER:
-                navigationWrapper.floatingActionButton.setImageResource(R.drawable.ic_user_24dp);
+                navigationWrapper.floatingActionButton.setImageResource(R.drawable.ic_user_day_night_24dp);
+                navigationWrapper.floatingActionButton.setContentDescription(getString(R.string.content_description_go_to_user));
                 break;
             case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_FAB_RANDOM:
-                navigationWrapper.floatingActionButton.setImageResource(R.drawable.ic_random_24dp);
+                navigationWrapper.floatingActionButton.setImageResource(R.drawable.ic_random_day_night_24dp);
+                navigationWrapper.floatingActionButton.setContentDescription(getString(R.string.content_description_random));
                 break;
             case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_FAB_HIDE_READ_POSTS:
                 if (accountName.equals(Account.ANONYMOUS_ACCOUNT)) {
-                    navigationWrapper.floatingActionButton.setImageResource(R.drawable.ic_filter_24dp);
+                    navigationWrapper.floatingActionButton.setImageResource(R.drawable.ic_filter_day_night_24dp);
                     fabOption = SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_FAB_FILTER_POSTS;
+                    navigationWrapper.floatingActionButton.setContentDescription(getString(R.string.content_description_filter_posts));
                 } else {
-                    navigationWrapper.floatingActionButton.setImageResource(R.drawable.ic_hide_read_posts_24dp);
+                    navigationWrapper.floatingActionButton.setImageResource(R.drawable.ic_hide_read_posts_day_night_24dp);
+                    navigationWrapper.floatingActionButton.setContentDescription(getString(R.string.content_description_hide_read_posts));
                 }
                 break;
             case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_FAB_FILTER_POSTS:
-                navigationWrapper.floatingActionButton.setImageResource(R.drawable.ic_filter_24dp);
+                navigationWrapper.floatingActionButton.setImageResource(R.drawable.ic_filter_day_night_24dp);
+                navigationWrapper.floatingActionButton.setContentDescription(getString(R.string.content_description_filter_posts));
                 break;
             case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_FAB_GO_TO_TOP:
-                navigationWrapper.floatingActionButton.setImageResource(R.drawable.ic_keyboard_double_arrow_up_24);
+                navigationWrapper.floatingActionButton.setImageResource(R.drawable.ic_keyboard_double_arrow_up_day_night_24dp);
+                navigationWrapper.floatingActionButton.setContentDescription(getString(R.string.content_description_go_to_top));
                 break;
             default:
                 if (accountName.equals(Account.ANONYMOUS_ACCOUNT)) {
-                    navigationWrapper.floatingActionButton.setImageResource(R.drawable.ic_filter_24dp);
+                    navigationWrapper.floatingActionButton.setImageResource(R.drawable.ic_filter_day_night_24dp);
                     fabOption = SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_FAB_FILTER_POSTS;
+                    navigationWrapper.floatingActionButton.setContentDescription(getString(R.string.content_description_filter_posts));
                 } else {
                     navigationWrapper.floatingActionButton.setImageResource(R.drawable.ic_add_day_night_24dp);
+                    navigationWrapper.floatingActionButton.setContentDescription(getString(R.string.content_description_submit_post));
                 }
                 break;
         }
@@ -782,16 +806,6 @@ public class MainActivity extends BaseActivity implements SortTypeSelectionCallb
                                 mCustomThemeWrapper.setThemeType(CustomThemeSharedPreferencesUtils.AMOLED);
                             } else {
                                 mCustomThemeWrapper.setThemeType(CustomThemeSharedPreferencesUtils.DARK);
-                            }
-                        } else if (stringId == R.string.enable_nsfw) {
-                            if (sectionsPagerAdapter != null) {
-                                mNsfwAndSpoilerSharedPreferences.edit().putBoolean((accountName.equals(Account.ANONYMOUS_ACCOUNT) ? "" : accountName) + SharedPreferencesUtils.NSFW_BASE, true).apply();
-                                sectionsPagerAdapter.changeNSFW(true);
-                            }
-                        } else if (stringId == R.string.disable_nsfw) {
-                            if (sectionsPagerAdapter != null) {
-                                mNsfwAndSpoilerSharedPreferences.edit().putBoolean((accountName.equals(Account.ANONYMOUS_ACCOUNT) ? "" : accountName) + SharedPreferencesUtils.NSFW_BASE, false).apply();
-                                sectionsPagerAdapter.changeNSFW(false);
                             }
                         } else if (stringId == R.string.settings) {
                             intent = new Intent(MainActivity.this, SettingsActivity.class);
@@ -981,6 +995,68 @@ public class MainActivity extends BaseActivity implements SortTypeSelectionCallb
                     }
                 });
             }
+        }
+    }
+
+    public void setBottomAppBarContentDescription(View view, int option) {
+        switch (option) {
+            case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_SUBSCRIPTIONS:
+                view.setContentDescription(getString(R.string.content_description_subscriptions));
+                break;
+            case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_INBOX:
+                view.setContentDescription(getString(R.string.content_description_inbox));
+                break;
+            case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_PROFILE:
+                view.setContentDescription(getString(R.string.content_description_profile));
+                break;
+            case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_MULTIREDDITS:
+                view.setContentDescription(getString(R.string.content_description_multireddits));
+                break;
+            case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_SUBMIT_POSTS:
+                view.setContentDescription(getString(R.string.content_description_submit_post));
+                break;
+            case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_REFRESH:
+                view.setContentDescription(getString(R.string.content_description_refresh));
+                break;
+            case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_CHANGE_SORT_TYPE:
+                view.setContentDescription(getString(R.string.content_description_change_sort_type));
+                break;
+            case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_CHANGE_POST_LAYOUT:
+                view.setContentDescription(getString(R.string.content_description_change_post_layout));
+                break;
+            case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_SEARCH:
+                view.setContentDescription(getString(R.string.content_description_search));
+                break;
+            case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_GO_TO_SUBREDDIT :
+                view.setContentDescription(getString(R.string.content_description_go_to_subreddit));
+                break;
+            case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_GO_TO_USER :
+                view.setContentDescription(getString(R.string.content_description_go_to_user));
+                break;
+            case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_RANDOM :
+                view.setContentDescription(getString(R.string.content_description_random));
+                break;
+            case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_HIDE_READ_POSTS :
+                view.setContentDescription(getString(R.string.content_description_hide_read_posts));
+                break;
+            case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_FILTER_POSTS :
+                view.setContentDescription(getString(R.string.content_description_filter_posts));
+                break;
+            case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_UPVOTED :
+                view.setContentDescription(getString(R.string.content_description_upvoted));
+                break;
+            case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_DOWNVOTED :
+                view.setContentDescription(getString(R.string.content_description_downvoted));
+                break;
+            case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_HIDDEN :
+                view.setContentDescription(getString(R.string.content_description_hidden));
+                break;
+            case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_SAVED :
+                view.setContentDescription(getString(R.string.content_description_saved));
+                break;
+            case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_GO_TO_TOP :
+                view.setContentDescription(getString(R.string.content_description_go_to_top));
+                break;
         }
     }
 
@@ -1217,9 +1293,6 @@ public class MainActivity extends BaseActivity implements SortTypeSelectionCallb
     @Subscribe
     public void onChangeNSFWEvent(ChangeNSFWEvent changeNSFWEvent) {
         sectionsPagerAdapter.changeNSFW(changeNSFWEvent.nsfw);
-        if (adapter != null) {
-            adapter.setNSFWEnabled(changeNSFWEvent.nsfw);
-        }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -1516,7 +1589,8 @@ public class MainActivity extends BaseActivity implements SortTypeSelectionCallb
 
     @Override
     public void markPostAsRead(Post post) {
-        InsertReadPost.insertReadPost(mRedditDataRoomDatabase, mExecutor, accountName, post.getId());
+        int readPostsLimit = ReadPostsUtils.GetReadPostsLimit(accountName, mPostHistorySharedPreferences);
+        InsertReadPost.insertReadPost(mRedditDataRoomDatabase, mExecutor, accountName, post.getId(), readPostsLimit);
     }
 
     public void doNotShowRedditAPIInfoAgain() {
