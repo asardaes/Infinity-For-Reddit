@@ -1,5 +1,5 @@
 <h1 align="center">
-  Infinity For Reddit <a href="https://www.patreon.com/docile_alligator"><img src="https://img.shields.io/badge/Patreon-F96854?style=for-the-badge&logo=patreon&logoColor=white" alt="Patreon"></a>
+  Infinity For Reddit+ <a href="https://www.patreon.com/docile_alligator"><img src="https://img.shields.io/badge/Patreon-F96854?style=for-the-badge&logo=patreon&logoColor=white" alt="Patreon"></a>
   
 </h1>
 
@@ -15,7 +15,7 @@ A Reddit client on Android written in Java. It does not have any ads and it feat
 
 <div align="center">
 
-Infinity for Reddit is available on Google Play and F-Droid
+Infinity for Reddit+ is available on Google Play and F-Droid
 
   <a href="https://play.google.com/store/apps/details?id=ml.docilealligator.infinityforreddit.plus">
       <img alt="Get it on Google Play" height="80" src="https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png" />
