@@ -19,8 +19,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
 
-import ml.docilealligator.infinityforreddit.thing.MediaMetadata;
 import ml.docilealligator.infinityforreddit.commentfilter.CommentFilter;
+import ml.docilealligator.infinityforreddit.thing.MediaMetadata;
 import ml.docilealligator.infinityforreddit.utils.JSONUtils;
 import ml.docilealligator.infinityforreddit.utils.Utils;
 
@@ -110,17 +110,22 @@ public class ParseComment {
                             }
                         }
                     } else {
-                        Comment comment = parseSingleComment(childData, 0);
-                        String parentFullName = comment.getParentId();
+                        try {
+                            Comment comment = parseSingleComment(childData, 0);
+                            String parentFullName = comment.getParentId();
 
-                        Comment parentComment = findCommentByFullName(newComments, parentFullName);
-                        if (parentComment != null) {
-                            parentComment.setHasReply(true);
-                            parentComment.addChild(comment, parentComment.getChildCount());
-                            parentComment.setChildCount(parentComment.getChildCount() + 1);
-                        } else {
-                            // assume that it is parent of this call
-                            newComments.add(comment);
+                            Comment parentComment = findCommentByFullName(newComments, parentFullName);
+                            if (parentComment != null) {
+                                parentComment.setHasReply(true);
+                                parentComment.addChild(comment, parentComment.getChildCount());
+                                parentComment.setChildCount(parentComment.getChildCount() + 1);
+                            } else {
+                                // assume that it is parent of this call
+                                newComments.add(comment);
+                            }
+                        } catch (JSONException e) {
+                            // Well we need to catch and ignore the exception to not show "error loading comments" to users
+                            e.printStackTrace();
                         }
                     }
                 }
@@ -257,6 +262,13 @@ public class ParseComment {
         String id = singleCommentData.getString(JSONUtils.ID_KEY);
         String fullName = singleCommentData.getString(JSONUtils.NAME_KEY);
         String author = singleCommentData.getString(JSONUtils.AUTHOR_KEY);
+
+        String authorFullname = "";
+
+        if (singleCommentData.has(JSONUtils.AUTHOR_FULLNAME_KEY)) {
+            authorFullname = singleCommentData.getString(JSONUtils.AUTHOR_FULLNAME_KEY);
+        }
+
         StringBuilder authorFlairHTMLBuilder = new StringBuilder();
         if (singleCommentData.has(JSONUtils.AUTHOR_FLAIR_RICHTEXT_KEY)) {
             JSONArray flairArray = singleCommentData.getJSONArray(JSONUtils.AUTHOR_FLAIR_RICHTEXT_KEY);
@@ -310,7 +322,7 @@ public class ParseComment {
         // this key can either be a bool (false) or a long (edited timestamp)
         long edited = singleCommentData.optLong(JSONUtils.EDITED_KEY) * 1000;
 
-        return new Comment(id, fullName, author, authorFlair, authorFlairHTMLBuilder.toString(),
+        return new Comment(id, fullName, author, authorFullname, authorFlair, authorFlairHTMLBuilder.toString(),
                 linkAuthor, submitTime, commentMarkdown, commentRawText,
                 linkId, subredditName, parentId, score, voteType, isSubmitter, distinguished,
                 permalink, depth, collapsed, hasReply, scoreHidden, saved, sendReplies, edited,
