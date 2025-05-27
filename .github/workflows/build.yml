@@ -32,7 +32,7 @@ jobs:
         arguments: assembleRelease
 
     - name: Send apk
-      uses: dawidd6/action-send-mail@v3
+      uses: dawidd6/action-send-mail@v5
       with:
         connection_url: ${{ secrets.MAIL_CONNECTION }}
         to: ${{ secrets.TO_EMAIL }}
