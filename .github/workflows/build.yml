@@ -34,7 +34,8 @@ jobs:
     - name: Send apk
       uses: dawidd6/action-send-mail@v5
       with:
-        connection_url: ${{ secrets.MAIL_CONNECTION }}
+        server_address: smtp.mailgun.org
+        server_port: 465
         to: ${{ secrets.TO_EMAIL }}
         from: GitHub <${{ secrets.FROM_EMAIL }}>
         subject: Reddit Infinity APK
