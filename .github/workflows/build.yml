@@ -31,6 +31,11 @@ jobs:
       with:
         arguments: assembleRelease
 
+    - name: Zip
+      uses: montudor/action-zip@v1
+      with:
+        args: zip -qq -r release.zip app/build/outputs/apk/release
+
     - name: Send apk
       uses: dawidd6/action-send-mail@v5
       with:
@@ -40,4 +45,4 @@ jobs:
         from: asardaes <${{ secrets.FROM_EMAIL }}>
         subject: Reddit Infinity APK
         body: APK for version ${{ steps.custom.outputs.app_version }}
-        attachments: app/build/outputs/apk/release/app-release.apk
+        attachments: release.zip
