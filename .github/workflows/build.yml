@@ -37,7 +37,7 @@ jobs:
         server_address: smtp.mailgun.org
         server_port: 465
         to: ${{ secrets.TO_EMAIL }}
-        from: GitHub <${{ secrets.FROM_EMAIL }}>
+        from: asardaes <${{ secrets.FROM_EMAIL }}>
         subject: Reddit Infinity APK
         body: APK for version ${{ steps.custom.outputs.app_version }}
         attachments: app/build/outputs/apk/release/app-release.apk
