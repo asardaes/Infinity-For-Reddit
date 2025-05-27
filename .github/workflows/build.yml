@@ -36,6 +36,8 @@ jobs:
       with:
         server_address: smtp.mailgun.org
         server_port: 465
+        username: ${{ secrets.MAIL_USERNAME }}
+        password: ${{ secrets.MAIL_PASSWORD }}
         to: ${{ secrets.TO_EMAIL }}
         from: asardaes <${{ secrets.FROM_EMAIL }}>
         subject: Reddit Infinity APK
