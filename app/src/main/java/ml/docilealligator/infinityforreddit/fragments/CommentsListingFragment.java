@@ -3,11 +3,9 @@ package ml.docilealligator.infinityforreddit.fragments;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -20,6 +18,10 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.res.ResourcesCompat;
+import androidx.core.graphics.Insets;
+import androidx.core.view.OnApplyWindowInsetsListener;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.ItemTouchHelper;
@@ -36,23 +38,24 @@ import java.util.concurrent.Executor;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import ml.docilealligator.infinityforreddit.CommentModerationActionHandler;
 import ml.docilealligator.infinityforreddit.Infinity;
 import ml.docilealligator.infinityforreddit.NetworkState;
 import ml.docilealligator.infinityforreddit.R;
 import ml.docilealligator.infinityforreddit.RecyclerViewContentScrollingInterface;
 import ml.docilealligator.infinityforreddit.RedditDataRoomDatabase;
-import ml.docilealligator.infinityforreddit.customviews.AdjustableTouchSlopItemTouchHelper;
-import ml.docilealligator.infinityforreddit.thing.ReplyNotificationsToggle;
-import ml.docilealligator.infinityforreddit.thing.SortType;
 import ml.docilealligator.infinityforreddit.account.Account;
 import ml.docilealligator.infinityforreddit.activities.BaseActivity;
 import ml.docilealligator.infinityforreddit.adapters.CommentsListingRecyclerViewAdapter;
 import ml.docilealligator.infinityforreddit.comment.Comment;
 import ml.docilealligator.infinityforreddit.comment.CommentViewModel;
 import ml.docilealligator.infinityforreddit.customtheme.CustomThemeWrapper;
+import ml.docilealligator.infinityforreddit.customviews.AdjustableTouchSlopItemTouchHelper;
 import ml.docilealligator.infinityforreddit.customviews.LinearLayoutManagerBugFixed;
 import ml.docilealligator.infinityforreddit.databinding.FragmentCommentsListingBinding;
 import ml.docilealligator.infinityforreddit.events.ChangeNetworkStatusEvent;
+import ml.docilealligator.infinityforreddit.thing.ReplyNotificationsToggle;
+import ml.docilealligator.infinityforreddit.thing.SortType;
 import ml.docilealligator.infinityforreddit.utils.SharedPreferencesUtils;
 import ml.docilealligator.infinityforreddit.utils.Utils;
 import retrofit2.Retrofit;
@@ -61,7 +64,7 @@ import retrofit2.Retrofit;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class CommentsListingFragment extends Fragment implements FragmentCommunicator {
+public class CommentsListingFragment extends Fragment implements FragmentCommunicator, CommentModerationActionHandler {
 
     public static final String EXTRA_USERNAME = "EN";
     public static final String EXTRA_ARE_SAVED_COMMENTS = "EISC";
@@ -125,17 +128,29 @@ public class CommentsListingFragment extends Fragment implements FragmentCommuni
 
         mGlide = Glide.with(mActivity);
 
-        Resources resources = getResources();
-
-        if ((mActivity instanceof BaseActivity && ((BaseActivity) mActivity).isImmersiveInterface())) {
-            binding.recyclerViewCommentsListingFragment.setPadding(0, 0, 0, ((BaseActivity) mActivity).getNavBarHeight());
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+        if (mActivity.isImmersiveInterface()) {
+            ViewCompat.setOnApplyWindowInsetsListener(mActivity.getWindow().getDecorView(), new OnApplyWindowInsetsListener() {
+                @NonNull
+                @Override
+                public WindowInsetsCompat onApplyWindowInsets(@NonNull View v, @NonNull WindowInsetsCompat insets) {
+                    Insets allInsets = insets.getInsets(
+                            WindowInsetsCompat.Type.systemBars()
+                                    | WindowInsetsCompat.Type.displayCutout()
+                    );
+                    binding.recyclerViewCommentsListingFragment.setPadding(
+                            0, 0, 0, allInsets.bottom
+                    );
+                    return insets;
+                }
+            });
+            //binding.recyclerViewCommentsListingFragment.setPadding(0, 0, 0, mActivity.getNavBarHeight());
+        }/* else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
                 && mSharedPreferences.getBoolean(SharedPreferencesUtils.IMMERSIVE_INTERFACE_KEY, true)) {
             int navBarResourceId = resources.getIdentifier("navigation_bar_height", "dimen", "android");
             if (navBarResourceId > 0) {
                 binding.recyclerViewCommentsListingFragment.setPadding(0, 0, 0, resources.getDimensionPixelSize(navBarResourceId));
             }
-        }
+        }*/
 
         boolean enableSwipeAction = mSharedPreferences.getBoolean(SharedPreferencesUtils.ENABLE_SWIPE_ACTION, false);
         boolean vibrateWhenActionTriggered = mSharedPreferences.getBoolean(SharedPreferencesUtils.VIBRATE_WHEN_ACTION_TRIGGERED, true);
@@ -267,7 +282,7 @@ public class CommentsListingFragment extends Fragment implements FragmentCommuni
                 sortType = new SortType(SortType.Type.valueOf(sort.toUpperCase()));
             }
 
-            mAdapter = new CommentsListingRecyclerViewAdapter(mActivity, mOauthRetrofit, customThemeWrapper,
+            mAdapter = new CommentsListingRecyclerViewAdapter(mActivity, this, mOauthRetrofit, customThemeWrapper,
                     getResources().getConfiguration().locale, mSharedPreferences,
                     mActivity.accessToken, mActivity.accountName,
                     username, () -> mCommentViewModel.retryLoadingMore());
@@ -325,6 +340,13 @@ public class CommentsListingFragment extends Fragment implements FragmentCommuni
             });
 
             mCommentViewModel.getPaginationNetworkState().observe(getViewLifecycleOwner(), networkState -> mAdapter.setNetworkState(networkState));
+
+            mCommentViewModel.commentModerationEventLiveData.observe(getViewLifecycleOwner(), moderationEvent -> {
+                if (mAdapter != null) {
+                    mAdapter.updateModdedStatus(moderationEvent.getPosition());
+                }
+                Toast.makeText(mActivity, moderationEvent.getToastMessageResId(), Toast.LENGTH_SHORT).show();
+            });
 
             binding.swipeRefreshLayoutViewCommentsListingFragment.setOnRefreshListener(() -> mCommentViewModel.refresh());
         }
@@ -465,5 +487,20 @@ public class CommentsListingFragment extends Fragment implements FragmentCommuni
         if (previousPosition > 0) {
             recyclerView.scrollToPosition(previousPosition);
         }
+    }
+
+    @Override
+    public void approveComment(@NonNull Comment comment, int position) {
+        mCommentViewModel.approveComment(comment, position);
+    }
+
+    @Override
+    public void removeComment(@NonNull Comment comment, int position, boolean isSpam) {
+        mCommentViewModel.removeComment(comment, position, isSpam);
+    }
+
+    @Override
+    public void toggleLock(@NonNull Comment comment, int position) {
+        mCommentViewModel.toggleLock(comment, position);
     }
 }

@@ -27,6 +27,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.OptIn;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.core.graphics.Insets;
+import androidx.core.view.OnApplyWindowInsetsListener;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
@@ -187,6 +191,7 @@ public class ViewUserDetailActivity extends BaseActivity implements SortTypeSele
     private int unsubscribedColor;
     private int subscribedColor;
     private int fabOption;
+    private int topSystemBarHeight;
     private boolean showToast = false;
     private boolean hideFab;
     private boolean showBottomAppBar;
@@ -269,7 +274,85 @@ public class ViewUserDetailActivity extends BaseActivity implements SortTypeSele
                 } else {
                     window.setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
                 }
-                adjustToolbar(binding.toolbarViewUserDetailActivity);
+
+                ViewCompat.setOnApplyWindowInsetsListener(binding.getRoot(), new OnApplyWindowInsetsListener() {
+                    @NonNull
+                    @Override
+                    public WindowInsetsCompat onApplyWindowInsets(@NonNull View v, @NonNull WindowInsetsCompat insets) {
+                        Insets allInsets = insets.getInsets(
+                                WindowInsetsCompat.Type.systemBars()
+                                        | WindowInsetsCompat.Type.displayCutout()
+                        );
+
+                        topSystemBarHeight = allInsets.top;
+
+                        int padding16 = (int) Utils.convertDpToPixel(16, ViewUserDetailActivity.this);
+
+                        if (navigationWrapper.navigationRailView == null) {
+                            if (navigationWrapper.bottomAppBar.getVisibility() != View.VISIBLE) {
+                                setMargins(navigationWrapper.floatingActionButton,
+                                        BaseActivity.IGNORE_MARGIN,
+                                        BaseActivity.IGNORE_MARGIN,
+                                        padding16 + allInsets.right,
+                                        padding16 + allInsets.bottom);
+                            } else {
+                                setMargins(navigationWrapper.floatingActionButton,
+                                        BaseActivity.IGNORE_MARGIN,
+                                        BaseActivity.IGNORE_MARGIN,
+                                        BaseActivity.IGNORE_MARGIN,
+                                        allInsets.bottom);
+                            }
+                        } else {
+                            if (navigationWrapper.navigationRailView.getVisibility() != View.VISIBLE) {
+                                setMargins(navigationWrapper.floatingActionButton,
+                                        BaseActivity.IGNORE_MARGIN,
+                                        BaseActivity.IGNORE_MARGIN,
+                                        padding16 + allInsets.right,
+                                        padding16 + allInsets.bottom);
+
+                                binding.viewPagerViewUserDetailActivity.setPadding(allInsets.left, 0, allInsets.right, 0);
+                            } else {
+                                navigationWrapper.navigationRailView.setFitsSystemWindows(false);
+                                navigationWrapper.navigationRailView.setPadding(0, 0, 0, allInsets.bottom);
+
+                                setMargins(navigationWrapper.navigationRailView,
+                                        allInsets.left,
+                                        BaseActivity.IGNORE_MARGIN,
+                                        BaseActivity.IGNORE_MARGIN,
+                                        BaseActivity.IGNORE_MARGIN
+                                );
+
+                                binding.viewPagerViewUserDetailActivity.setPadding(0, 0, allInsets.right, 0);
+                            }
+                        }
+
+                        binding.toolbarConstraintLayoutViewUserDetailActivity.setPadding(
+                                padding16 + allInsets.left,
+                                binding.toolbarConstraintLayoutViewUserDetailActivity.getPaddingTop(),
+                                padding16 + allInsets.right,
+                                binding.toolbarConstraintLayoutViewUserDetailActivity.getPaddingBottom());
+
+                        if (navigationWrapper.bottomAppBar != null) {
+                            navigationWrapper.linearLayoutBottomAppBar.setPadding(
+                                    navigationWrapper.linearLayoutBottomAppBar.getPaddingLeft(),
+                                    navigationWrapper.linearLayoutBottomAppBar.getPaddingTop(),
+                                    navigationWrapper.linearLayoutBottomAppBar.getPaddingRight(),
+                                    allInsets.bottom
+                            );
+                        }
+
+                        setMargins(binding.toolbarViewUserDetailActivity,
+                                allInsets.left,
+                                allInsets.top,
+                                allInsets.right,
+                                BaseActivity.IGNORE_MARGIN);
+
+                        binding.tabLayoutViewUserDetailActivity.setPadding(allInsets.left, 0, allInsets.right, 0);
+
+                        return WindowInsetsCompat.CONSUMED;
+                    }
+                });
+                /*adjustToolbar(binding.toolbarViewUserDetailActivity);
 
                 int navBarHeight = getNavBarHeight();
                 if (navBarHeight > 0) {
@@ -278,7 +361,7 @@ public class ViewUserDetailActivity extends BaseActivity implements SortTypeSele
                         params.bottomMargin += navBarHeight;
                         navigationWrapper.floatingActionButton.setLayoutParams(params);
                     }
-                }
+                }*/
                 showToast = true;
             }
 
@@ -607,7 +690,7 @@ public class ViewUserDetailActivity extends BaseActivity implements SortTypeSele
             @Override
             public void onGlobalLayout() {
                 binding.appbarLayoutViewUserDetail.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                binding.collapsingToolbarLayoutViewUserDetailActivity.setScrimVisibleHeightTrigger(binding.toolbarViewUserDetailActivity.getHeight() + binding.tabLayoutViewUserDetailActivity.getHeight() + getStatusBarHeight() * 2);
+                binding.collapsingToolbarLayoutViewUserDetailActivity.setScrimVisibleHeightTrigger(binding.toolbarViewUserDetailActivity.getHeight() + binding.tabLayoutViewUserDetailActivity.getHeight() + topSystemBarHeight * 2);
             }
         });
         applyAppBarLayoutAndCollapsingToolbarLayoutAndToolbarTheme(binding.appbarLayoutViewUserDetail,

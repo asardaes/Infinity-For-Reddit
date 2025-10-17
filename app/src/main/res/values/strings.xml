@@ -53,7 +53,7 @@
 
     <string name="action_download">Download</string>
     <string name="action_refresh">Refresh</string>
-    <string name="action_add_comment">Add a comment</string>
+    <string name="action_add_comment">Send comment</string>
     <string name="action_save_post">Save post</string>
     <string name="action_view_crosspost_parent">View crosspost parent</string>
     <string name="action_search">Search</string>
@@ -101,6 +101,8 @@
     <string name="action_reset_fab_position">Reset FAB position</string>
     <string name="action_download_all_gallery_media">Download All Gallery Media</string>
     <string name="action_download_all_imgur_album_media">Download All Imgur Album Media</string>
+    <string name="action_next_parent_comment">Next Top-Level Comment</string>
+    <string name="action_previous_parent_comment">Previous Top-Level Comment</string>
 
     <string name="parse_json_response_error">Error occurred when parsing the JSON response</string>
     <string name="retrieve_token_error">Error Retrieving the token</string>
@@ -248,6 +250,7 @@
     <string name="no_camera_available">No camera app available</string>
     <string name="error_creating_temp_file">Error creating temp file</string>
 
+    <string name="submit_video_or_gif_post_failed_cannot_get_cache_directory">Unable to submit post: cannot access cache directory</string>
     <string name="video_is_processing">Video is processing. Please wait.</string>
     <string name="image_is_processing">Image is processing. Please wait.</string>
     <string name="gif_is_processing">Gif is processing. Please wait.</string>
@@ -300,6 +303,7 @@
     <string name="archived_post_reply_unavailable">Archived post. Reply unavailable.</string>
     <string name="locked_post_comment_unavailable">Locked post. Comment unavailable.</string>
     <string name="locked_post_reply_unavailable">Locked post. Reply unavailable.</string>
+    <string name="locked_comment_reply_unavailable">Locked comment. Reply unavailable.</string>
 
     <string name="text">TEXT</string>
     <string name="link">LINK</string>
@@ -658,6 +662,7 @@
     <string name="settings_proxy_hostname">Hostname</string>
     <string name="settings_proxy_port">Port</string>
     <string name="settings_hide_fab_in_post_details">Hide Floating Action Button</string>
+    <string name="settings_category_media_title">Media</string>
 
     <string name="no_link_available">Cannot get the link</string>
 
@@ -670,6 +675,8 @@
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="discard_dialog_button">Discard</string>
+    <string name="save_comment_draft">Save comment draft?</string>
+    <string name="save_comment_draft_detail">Your draft will be saved.</string>
 
     <string name="no_data_received">No data received</string>
     <string name="no_image_path_received">No image path received</string>
@@ -730,6 +737,7 @@
     <string name="copy_video_link">Copy Video Link</string>
     <string name="copy_link">Copy Link</string>
     <string name="open_link">Open Link</string>
+    <string name="share_as_image">Share as Image</string>
 
     <string name="copy_success">Copied</string>
     <string name="copy_link_failed">Cannot copy the link</string>
@@ -1058,9 +1066,9 @@
 
     <string name="downloading">Downloading</string>
     <string name="downloading_media_finished">Downloaded</string>
-    <string name="downloading_image_or_gif_failed_cannot_get_destination_directory">Download failed: cannot access destination directory</string>
+    <string name="downloading_image_or_gif_failed_cannot_get_destination_directory">Download failed: cannot access destination directory. Please reselect your preferred download location in Settings->Download Location.</string>
     <string name="downloading_media_failed_cannot_download_media">Download failed</string>
-    <string name="downloading_media_failed_cannot_save_to_destination_directory">Download failed: cannot save the file to destination directory</string>
+    <string name="downloading_media_failed_cannot_save_to_destination_directory">Download failed: cannot save the file to destination directory. Please reselect your preferred download location in Settings->Download Location.</string>
     <string name="download_media_failed_cannot_fetch_redgifs_url">Download failed: cannot fetch Redgifs video url</string>
     <string name="download_media_failed_cannot_fetch_streamable_url">Download failed: cannot fetch Streamable video url</string>
     <string name="download_media_failed_invalid_argument">Invalid argument</string>
@@ -1139,7 +1147,9 @@
     <string name="title_excludes_regex_hint">Title: excludes regex</string>
     <string name="title_contains_regex_hint">Title: contains regex</string>
     <string name="exclude_subreddits_hint">Exclude subreddits (e.g. funny,AskReddit)</string>
+    <string name="contain_subreddits_hint">Contain subreddits (e.g. funny,AskReddit)</string>
     <string name="exclude_users_hint">Exclude users (e.g. Hostilenemy,random)</string>
+    <string name="contain_users_hint">Contain users (e.g. Hostilenemy,random)</string>
     <string name="exclude_flairs_hint">Exclude flairs (e.g. flair1,flair2)</string>
     <string name="contain_flairs_hint">Contain flairs (e.g. flair1,flair2)</string>
     <string name="exclude_domains_hint">Exclude domains</string>
@@ -1179,7 +1189,9 @@
     <string name="post_filter_title_excludes_regex_explanation">Posts will be filtered out if their title matches the following regular expression.</string>
     <string name="post_filter_title_contains_regex_explanation">Posts will be filtered out if their title does not match the following regular expression.</string>
     <string name="post_filter_exclude_subreddits_explanation">Posts from the following subreddits will be filtered out.</string>
+    <string name="post_filter_contain_subreddits_explanation">Posts will be filtered out if they are not from the following subreddits.</string>
     <string name="post_filter_exclude_users_explanation">Posts submitted by the following users will be filtered out.</string>
+    <string name="post_filter_contain_users_explanation">Posts will be filtered out if they are not from the following users.</string>
     <string name="post_filter_exclude_flairs_explanation">Posts that have the following flairs will be filtered out.</string>
     <string name="post_filter_contain_flairs_explanation">Posts that do not have the following flairs will be filtered out.</string>
     <string name="post_filter_exclude_domains_explanation">Link posts that have the following urls will be filtered out.</string>
@@ -1221,6 +1233,7 @@
     <string name="restore_settings_partially_failed">Some settings may not be restored successfully. Restart the app to see the changes.</string>
     <string name="restore_settings_failed_file_corrupted">Cannot restore settings. The file may be corrupted.</string>
     <string name="restore_settings_failed_cannot_get_file">Cannot access the file</string>
+    <string name="restore_settings_failed_cannot_get_cache_dir">Cannot access cache directory</string>
 
     <string name="suicide_prevention_quote">If you are looking for a sign not to kill yourself, this is it.\u2764</string>
     <string name="do_not_show_this_again">Don\'t show this again</string>
@@ -1246,7 +1259,9 @@
 
     <string name="select">Select</string>
     <string name="exclude_subreddit">Exclude this subreddit</string>
+    <string name="contain_subreddit">Contain this subreddit</string>
     <string name="exclude_user">Exclude this user</string>
+    <string name="contain_user">Contain this user</string>
     <string name="exclude_flair">Exclude this flair</string>
     <string name="contain_flair">Contain this flair</string>
     <string name="exclude_domain">Exclude this domain</string>
@@ -1535,4 +1550,41 @@
     <string name="proxy_http">HTTP</string>
     <string name="proxy_socks">SOCKS</string>
     <string name="proxy_direct">Direct</string>
+
+    <string name="jump_to_parent_comment">Jump to Parent Comment</string>
+    <string name="long_press_post_non_media_area">Long Press on Post (Non-Media Area)</string>
+    <string name="long_press_post_media">Long Press on Post Media</string>
+    <string name="show_post_options">Show Post Options</string>
+    <string name="preview_in_fullscreen">Preview in Fullscreen</string>
+
+    <string name="moderation">Moderation</string>
+    <string name="approve">Approve</string>
+    <string name="approved">Approved</string>
+    <string name="approve_failed">Approve failed</string>
+    <string name="remove">Remove</string>
+    <string name="removed">Removed</string>
+    <string name="remove_failed">Remove failed</string>
+    <string name="mark_as_spam">Mark as spam</string>
+    <string name="marked_as_spam">Marked as spam</string>
+    <string name="mark_as_spam_failed">Mark as spam failed</string>
+    <string name="set_sticky_post">Set sticky post</string>
+    <string name="set_sticky_post_failed">Set sticky post failed</string>
+    <string name="unset_sticky_post">Unset sticky post</string>
+    <string name="unset_sticky_post_failed">Unset sticky post failed</string>
+    <string name="lock">Lock</string>
+    <string name="locked">Locked</string>
+    <string name="lock_failed">Lock failed</string>
+    <string name="unlocked">Unlocked</string>
+    <string name="unlock_failed">Unlock failed</string>
+    <string name="distinguish_as_mod">Distinguish as moderator</string>
+    <string name="undistinguish_as_mod">Undistinguish as moderator</string>
+    <string name="distinguished_as_mod">Distinguished as mod</string>
+    <string name="distinguish_as_mod_failed">Distinguish as moderator failed</string>
+    <string name="undistinguished_as_mod">Undistinguished as moderator</string>
+    <string name="undistinguish_as_mod_failed">Undistinguish as moderator failed</string>
+    <string name="approved_status">Approved by %1$s</string>
+    <string name="post_removed_status">This post is removed</string>
+    <string name="post_spam_status">This post is removed as spam</string>
+    <string name="comment_removed_status">This comment is removed</string>
+    <string name="comment_spam_status">This comment is removed as spam</string>
 </resources>

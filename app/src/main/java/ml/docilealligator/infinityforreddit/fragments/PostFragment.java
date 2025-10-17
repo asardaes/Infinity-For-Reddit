@@ -6,7 +6,6 @@ import static ml.docilealligator.infinityforreddit.videoautoplay.media.PlaybackI
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.LayoutInflater;
@@ -15,6 +14,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -39,13 +39,13 @@ import javax.inject.Provider;
 
 import ml.docilealligator.infinityforreddit.FetchPostFilterAndConcatenatedSubredditNames;
 import ml.docilealligator.infinityforreddit.Infinity;
+import ml.docilealligator.infinityforreddit.PostModerationActionHandler;
 import ml.docilealligator.infinityforreddit.R;
 import ml.docilealligator.infinityforreddit.RecyclerViewContentScrollingInterface;
 import ml.docilealligator.infinityforreddit.account.Account;
 import ml.docilealligator.infinityforreddit.activities.AccountPostsActivity;
 import ml.docilealligator.infinityforreddit.activities.AccountSavedThingActivity;
 import ml.docilealligator.infinityforreddit.activities.ActivityToolbarInterface;
-import ml.docilealligator.infinityforreddit.activities.BaseActivity;
 import ml.docilealligator.infinityforreddit.activities.CustomizePostFilterActivity;
 import ml.docilealligator.infinityforreddit.activities.FilteredPostsActivity;
 import ml.docilealligator.infinityforreddit.activities.ViewSubredditDetailActivity;
@@ -59,16 +59,16 @@ import ml.docilealligator.infinityforreddit.events.ChangeDefaultPostLayoutEvent;
 import ml.docilealligator.infinityforreddit.events.ChangeNetworkStatusEvent;
 import ml.docilealligator.infinityforreddit.events.ChangeSavePostFeedScrolledPositionEvent;
 import ml.docilealligator.infinityforreddit.events.NeedForPostListFromPostFragmentEvent;
+import ml.docilealligator.infinityforreddit.events.PostUpdateEventToPostDetailFragment;
+import ml.docilealligator.infinityforreddit.events.PostUpdateEventToPostList;
 import ml.docilealligator.infinityforreddit.events.ProvidePostListToViewPostDetailActivityEvent;
 import ml.docilealligator.infinityforreddit.post.Post;
 import ml.docilealligator.infinityforreddit.post.PostPagingSource;
 import ml.docilealligator.infinityforreddit.post.PostViewModel;
 import ml.docilealligator.infinityforreddit.postfilter.PostFilter;
 import ml.docilealligator.infinityforreddit.postfilter.PostFilterUsage;
-import ml.docilealligator.infinityforreddit.readpost.InsertReadPost;
 import ml.docilealligator.infinityforreddit.readpost.ReadPostsList;
 import ml.docilealligator.infinityforreddit.readpost.ReadPostsListInterface;
-import ml.docilealligator.infinityforreddit.readpost.ReadPostsUtils;
 import ml.docilealligator.infinityforreddit.thing.SortType;
 import ml.docilealligator.infinityforreddit.utils.SharedPreferencesUtils;
 import ml.docilealligator.infinityforreddit.utils.Utils;
@@ -81,7 +81,7 @@ import retrofit2.Retrofit;
 /**
  * A simple {@link PostFragmentBase} subclass.
  */
-public class PostFragment extends PostFragmentBase implements FragmentCommunicator {
+public class PostFragment extends PostFragmentBase implements FragmentCommunicator, PostModerationActionHandler {
 
     public static final String EXTRA_NAME = "EN";
     public static final String EXTRA_USER_NAME = "EUN";
@@ -188,16 +188,6 @@ public class PostFragment extends PostFragmentBase implements FragmentCommunicat
 
         Resources resources = getResources();
 
-        if ((activity != null && activity.isImmersiveInterface())) {
-            binding.recyclerViewPostFragment.setPadding(0, 0, 0, ((BaseActivity) activity).getNavBarHeight());
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
-                && mSharedPreferences.getBoolean(SharedPreferencesUtils.IMMERSIVE_INTERFACE_KEY, true)) {
-            int navBarResourceId = resources.getIdentifier("navigation_bar_height", "dimen", "android");
-            if (navBarResourceId > 0) {
-                binding.recyclerViewPostFragment.setPadding(0, 0, 0, resources.getDimensionPixelSize(navBarResourceId));
-            }
-        }
-
         binding.swipeRefreshLayoutPostFragment.setEnabled(mSharedPreferences.getBoolean(SharedPreferencesUtils.PULL_TO_REFRESH, true));
         binding.swipeRefreshLayoutPostFragment.setOnRefreshListener(this::refresh);
 
@@ -234,7 +224,7 @@ public class PostFragment extends PostFragmentBase implements FragmentCommunicat
 
         int defaultPostLayout = Integer.parseInt(mSharedPreferences.getString(SharedPreferencesUtils.DEFAULT_POST_LAYOUT_KEY, "0"));
         savePostFeedScrolledPosition = mSharedPreferences.getBoolean(SharedPreferencesUtils.SAVE_FRONT_PAGE_SCROLLED_POSITION, false);
-        Locale locale = getResources().getConfiguration().locale;
+        Locale locale = resources.getConfiguration().locale;
 
         int usage;
         String nameOfUsage;
@@ -889,6 +879,12 @@ public class PostFragment extends PostFragmentBase implements FragmentCommunicat
     private void bindPostViewModel() {
         mPostViewModel.getPosts().observe(getViewLifecycleOwner(), posts -> mAdapter.submitData(getViewLifecycleOwner().getLifecycle(), posts));
 
+        mPostViewModel.moderationEventLiveData.observe(getViewLifecycleOwner(), moderationEvent -> {
+            EventBus.getDefault().post(new PostUpdateEventToPostList(moderationEvent.getPost(), moderationEvent.getPosition()));
+            EventBus.getDefault().post(new PostUpdateEventToPostDetailFragment(moderationEvent.getPost()));
+            Toast.makeText(activity, moderationEvent.getToastMessageResId(), Toast.LENGTH_SHORT).show();
+        });
+
         mAdapter.addLoadStateListener(combinedLoadStates -> {
             LoadState refreshLoadState = combinedLoadStates.getRefresh();
             LoadState appendLoadState = combinedLoadStates.getAppend();
@@ -1254,12 +1250,6 @@ public class PostFragment extends PostFragmentBase implements FragmentCommunicat
         }
     }
 
-    @Override
-    public void markPostAsRead(Post post) {
-        int readPostsLimit = ReadPostsUtils.GetReadPostsLimit(activity.accountName, mPostHistorySharedPreferences);
-        InsertReadPost.insertReadPost(mRedditDataRoomDatabase, mExecutor, activity.accountName, post.getId(), readPostsLimit);
-    }
-
     @Subscribe
     public void onChangeDefaultPostLayoutEvent(ChangeDefaultPostLayoutEvent changeDefaultPostLayoutEvent) {
         Bundle bundle = getArguments();
@@ -1393,5 +1383,40 @@ public class PostFragment extends PostFragmentBase implements FragmentCommunicat
         if (mAdapter != null) {
             mAdapter.setCanPlayVideo(hasWindowsFocus);
         }
+    }
+
+    @Override
+    public void approvePost(@NonNull Post post, int position) {
+        mPostViewModel.approvePost(post, position);
+    }
+
+    @Override
+    public void removePost(@NonNull Post post, int position, boolean isSpam) {
+        mPostViewModel.removePost(post, position, isSpam);
+    }
+
+    @Override
+    public void toggleSticky(@NonNull Post post, int position) {
+        mPostViewModel.toggleSticky(post, position);
+    }
+
+    @Override
+    public void toggleLock(@NonNull Post post, int position) {
+        mPostViewModel.toggleLock(post, position);
+    }
+
+    @Override
+    public void toggleNSFW(@NonNull Post post, int position) {
+        mPostViewModel.toggleNSFW(post, position);
+    }
+
+    @Override
+    public void toggleSpoiler(@NonNull Post post, int position) {
+        mPostViewModel.toggleSpoiler(post, position);
+    }
+
+    @Override
+    public void toggleMod(@NonNull Post post, int position) {
+        mPostViewModel.toggleMod(post, position);
     }
 }

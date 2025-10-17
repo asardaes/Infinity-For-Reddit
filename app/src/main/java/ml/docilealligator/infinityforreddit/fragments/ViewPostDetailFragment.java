@@ -33,8 +33,13 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.content.res.AppCompatResources;
 import androidx.appcompat.view.menu.MenuItemImpl;
 import androidx.core.content.res.ResourcesCompat;
+import androidx.core.graphics.Insets;
 import androidx.core.view.MenuItemCompat;
+import androidx.core.view.OnApplyWindowInsetsListener;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.ConcatAdapter;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -63,7 +68,9 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
 
+import ml.docilealligator.infinityforreddit.CommentModerationActionHandler;
 import ml.docilealligator.infinityforreddit.Infinity;
+import ml.docilealligator.infinityforreddit.PostModerationActionHandler;
 import ml.docilealligator.infinityforreddit.R;
 import ml.docilealligator.infinityforreddit.RedditDataRoomDatabase;
 import ml.docilealligator.infinityforreddit.account.Account;
@@ -115,12 +122,13 @@ import ml.docilealligator.infinityforreddit.videoautoplay.ExoCreator;
 import ml.docilealligator.infinityforreddit.videoautoplay.media.PlaybackInfo;
 import ml.docilealligator.infinityforreddit.videoautoplay.media.VolumeInfo;
 import ml.docilealligator.infinityforreddit.viewmodels.ViewPostDetailActivityViewModel;
+import ml.docilealligator.infinityforreddit.viewmodels.ViewPostDetailFragmentViewModel;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 
-public class ViewPostDetailFragment extends Fragment implements FragmentCommunicator {
+public class ViewPostDetailFragment extends Fragment implements FragmentCommunicator, PostModerationActionHandler, CommentModerationActionHandler {
 
     public static final String EXTRA_POST_DATA = "EPD";
     public static final String EXTRA_POST_ID = "EPI";
@@ -230,6 +238,7 @@ public class ViewPostDetailFragment extends Fragment implements FragmentCommunic
     private int scrollPosition;
     private FragmentViewPostDetailBinding binding;
     private RecyclerView mCommentsRecyclerView;
+    public ViewPostDetailFragmentViewModel viewPostDetailFragmentViewModel;
 
     public ViewPostDetailFragment() {
         // Required empty public constructor
@@ -269,11 +278,28 @@ public class ViewPostDetailFragment extends Fragment implements FragmentCommunic
             mSeparatePostAndComments = true;
         }
 
-        if (activity != null && activity.isImmersiveInterface()) {
-            binding.postDetailRecyclerViewViewPostDetailFragment.setPadding(0, 0, 0, activity.getNavBarHeight() + binding.postDetailRecyclerViewViewPostDetailFragment.getPaddingBottom());
+        if (activity.isImmersiveInterface()) {
+            ViewCompat.setOnApplyWindowInsetsListener(activity.getWindow().getDecorView(), new OnApplyWindowInsetsListener() {
+                @NonNull
+                @Override
+                public WindowInsetsCompat onApplyWindowInsets(@NonNull View v, @NonNull WindowInsetsCompat insets) {
+                    Insets allInsets = insets.getInsets(
+                            WindowInsetsCompat.Type.systemBars()
+                                    | WindowInsetsCompat.Type.displayCutout()
+                    );
+                    binding.postDetailRecyclerViewViewPostDetailFragment.setPadding(
+                            0, 0, 0, (int) Utils.convertDpToPixel(144, activity) + allInsets.bottom
+                    );
+                    if (mCommentsRecyclerView != null) {
+                        mCommentsRecyclerView.setPadding(0, 0, 0, (int) Utils.convertDpToPixel(144, activity) + allInsets.bottom);
+                    }
+                    return insets;
+                }
+            });
+            /*binding.postDetailRecyclerViewViewPostDetailFragment.setPadding(0, 0, 0, activity.getNavBarHeight() + binding.postDetailRecyclerViewViewPostDetailFragment.getPaddingBottom());
             if (mCommentsRecyclerView != null) {
                 mCommentsRecyclerView.setPadding(0, 0, 0, activity.getNavBarHeight() + mCommentsRecyclerView.getPaddingBottom());
-            }
+            }*/
             showToast = true;
         }
 
@@ -544,6 +570,11 @@ public class ViewPostDetailFragment extends Fragment implements FragmentCommunic
             postListPosition = getArguments().getInt(EXTRA_POST_LIST_POSITION, -1);
         }
 
+        viewPostDetailFragmentViewModel = new ViewModelProvider(
+                this,
+                ViewPostDetailFragmentViewModel.Companion.provideFactory(mOauthRetrofit, activity.accessToken, activity.accountName)
+        ).get(ViewPostDetailFragmentViewModel.class);
+
         bindView();
 
         return binding.getRoot();
@@ -626,6 +657,22 @@ public class ViewPostDetailFragment extends Fragment implements FragmentCommunic
         binding.postDetailRecyclerViewViewPostDetailFragment.setPlayerInitializer(order -> {
             VolumeInfo volumeInfo = new VolumeInfo(true, 0f);
             return new PlaybackInfo(INDEX_UNSET, TIME_UNSET, volumeInfo);
+        });
+
+        viewPostDetailFragmentViewModel.getPostModerationEventLiveData().observe(getViewLifecycleOwner(), moderationEvent -> {
+            mPost = moderationEvent.getPost();
+            if (mPostAdapter != null) {
+                mPostAdapter.updatePost(mPost);
+            }
+            EventBus.getDefault().post(new PostUpdateEventToPostList(moderationEvent.getPost(), moderationEvent.getPosition()));
+            Toast.makeText(activity, moderationEvent.getToastMessageResId(), Toast.LENGTH_SHORT).show();
+        });
+
+        viewPostDetailFragmentViewModel.getCommentModerationEventLiveData().observe(getViewLifecycleOwner(), moderationEvent -> {
+            if (mCommentsAdapter != null) {
+                mCommentsAdapter.updateModdedStatus(moderationEvent.getComment(), moderationEvent.getPosition());
+            }
+            Toast.makeText(activity, moderationEvent.getToastMessageResId(), Toast.LENGTH_SHORT).show();
         });
     }
 
@@ -1442,6 +1489,7 @@ public class ViewPostDetailFragment extends Fragment implements FragmentCommunic
                             SortType.Type sortTypeType = loadSortType();
                             activity.setTitle(sortTypeType.fullName);
                             ViewPostDetailFragment.this.sortType = sortTypeType;
+                            fetchComments(changeRefreshState, ViewPostDetailFragment.this.sortType);
                         }
                     });
         } else {
@@ -1592,7 +1640,9 @@ public class ViewPostDetailFragment extends Fragment implements FragmentCommunic
                             public void fetchPostSuccess(Post post) {
                                 if (isAdded()) {
                                     mPost = post;
-                                    mPostAdapter.updatePost(mPost);
+                                    if (mPostAdapter != null) {
+                                        mPostAdapter.updatePost(mPost);
+                                    }
                                     EventBus.getDefault().post(new PostUpdateEventToPostList(mPost, postListPosition));
                                     setupMenu();
                                     binding.swipeRefreshLayoutViewPostDetailFragment.setRefreshing(false);
@@ -1641,7 +1691,7 @@ public class ViewPostDetailFragment extends Fragment implements FragmentCommunic
         Map<String, String> params = new HashMap<>();
         params.put(APIUtils.ID_KEY, mPost.getFullName());
         mOauthRetrofit.create(RedditAPI.class).markNSFW(APIUtils.getOAuthHeader(activity.accessToken), params)
-                .enqueue(new Callback<String>() {
+                .enqueue(new Callback<>() {
                     @Override
                     public void onResponse(@NonNull Call<String> call, @NonNull Response<String> response) {
                         if (response.isSuccessful()) {
@@ -1861,6 +1911,20 @@ public class ViewPostDetailFragment extends Fragment implements FragmentCommunic
         }
     }
 
+    public void scrollToParentComment(int position, int currentDepth) {
+        RecyclerView chooseYourView = mCommentsRecyclerView == null ? binding.postDetailRecyclerViewViewPostDetailFragment : mCommentsRecyclerView;
+        if (mCommentsAdapter != null && chooseYourView != null) {
+            int viewPosition = mCommentsRecyclerView == null ? (!isSingleCommentThreadMode ? position + 1 : position + 2) : (!isSingleCommentThreadMode ? position : position + 1);
+            int previousParentPosition = mCommentsAdapter.getParentCommentPosition(viewPosition, currentDepth);
+            if (previousParentPosition < 0) {
+                return;
+            }
+            mSmoothScroller.setTargetPosition(mCommentsRecyclerView == null && !isSingleCommentThreadMode ? previousParentPosition + 1 : previousParentPosition);
+            mIsSmoothScrolling = true;
+            chooseYourView.getLayoutManager().startSmoothScroll(mSmoothScroller);
+        }
+    }
+
     public void delayTransition() {
         TransitionManager.beginDelayedTransition((mCommentsRecyclerView == null ? binding.postDetailRecyclerViewViewPostDetailFragment : mCommentsRecyclerView), new AutoTransition());
     }
@@ -1881,6 +1945,15 @@ public class ViewPostDetailFragment extends Fragment implements FragmentCommunic
         if (mPost.getId().equals(event.post.getId())) {
             mPost.setVoteType(event.post.getVoteType());
             mPost.setSaved(event.post.isSaved());
+            mPost.setNSFW(event.post.isNSFW());
+            mPost.setSpoiler(event.post.isSpoiler());
+            mPost.setIsStickied(event.post.isStickied());
+            mPost.setApproved(event.post.isApproved());
+            mPost.setApprovedAtUTC(event.post.getApprovedAtUTC());
+            mPost.setApprovedBy(event.post.getApprovedBy());
+            mPost.setRemoved(event.post.isRemoved(), event.post.isSpam());
+            mPost.setIsLocked(event.post.isLocked());
+            mPost.setIsModerator(event.post.isModerator());
             if (mMenu != null) {
                 if (event.post.isSaved()) {
                     mMenu.findItem(R.id.action_save_view_post_detail_fragment).setIcon(mSavedIcon);
@@ -1995,5 +2068,55 @@ public class ViewPostDetailFragment extends Fragment implements FragmentCommunic
         if (mPostAdapter != null) {
             mPostAdapter.setCanPlayVideo(hasWindowsFocus);
         }
+    }
+
+    @Override
+    public void approvePost(@NonNull Post post, int position) {
+        viewPostDetailFragmentViewModel.approvePost(post, position);
+    }
+
+    @Override
+    public void removePost(@NonNull Post post, int position, boolean isSpam) {
+        viewPostDetailFragmentViewModel.removePost(post, position, isSpam);
+    }
+
+    @Override
+    public void toggleSticky(@NonNull Post post, int position) {
+        viewPostDetailFragmentViewModel.toggleSticky(post, position);
+    }
+
+    @Override
+    public void toggleLock(@NonNull Post post, int position) {
+        viewPostDetailFragmentViewModel.toggleLock(post, position);
+    }
+
+    @Override
+    public void toggleNSFW(@NonNull Post post, int position) {
+        viewPostDetailFragmentViewModel.toggleNSFW(post, position);
+    }
+
+    @Override
+    public void toggleSpoiler(@NonNull Post post, int position) {
+        viewPostDetailFragmentViewModel.toggleSpoiler(post, position);
+    }
+
+    @Override
+    public void toggleMod(@NonNull Post post, int position) {
+        viewPostDetailFragmentViewModel.toggleMod(post, position);
+    }
+
+    @Override
+    public void approveComment(@NonNull Comment comment, int position) {
+        viewPostDetailFragmentViewModel.approveComment(comment, position);
+    }
+
+    @Override
+    public void removeComment(@NonNull Comment comment, int position, boolean isSpam) {
+        viewPostDetailFragmentViewModel.removeComment(comment, position, isSpam);
+    }
+
+    @Override
+    public void toggleLock(@NonNull Comment comment, int position) {
+        viewPostDetailFragmentViewModel.toggleLock(comment, position);
     }
 }

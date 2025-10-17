@@ -48,7 +48,7 @@ public class FetchUserData {
                             JSONObject jsonResponse = new JSONObject(response.body());
                             UserData userData = parseUserDataBase(jsonResponse, true);
                             if (redditDataRoomDatabase != null) {
-                                redditDataRoomDatabase.accountDao().updateAccountInfo(userData.getName(), userData.getIconUrl(), userData.getBanner(), userData.getTotalKarma());
+                                redditDataRoomDatabase.accountDao().updateAccountInfo(userData.getName(), userData.getIconUrl(), userData.getBanner(), userData.getTotalKarma(), userData.isMod());
                             }
                             if (jsonResponse.getJSONObject(JSONUtils.DATA_KEY).has(JSONUtils.INBOX_COUNT_KEY)) {
                                 int inboxCount = jsonResponse.getJSONObject(JSONUtils.DATA_KEY).getInt(JSONUtils.INBOX_COUNT_KEY);
@@ -132,10 +132,19 @@ public class FetchUserData {
         String iconImageUrl = userDataJson.getString(JSONUtils.ICON_IMG_KEY);
         String bannerImageUrl = "";
         boolean canBeFollowed;
+        boolean isNsfw;
+        String description;
+        String title;
         if (userDataJson.has(JSONUtils.SUBREDDIT_KEY) && !userDataJson.isNull(JSONUtils.SUBREDDIT_KEY)) {
             bannerImageUrl = userDataJson.getJSONObject(JSONUtils.SUBREDDIT_KEY).getString(JSONUtils.BANNER_IMG_KEY);
+            isNsfw = userDataJson.getJSONObject(JSONUtils.SUBREDDIT_KEY).getBoolean(JSONUtils.OVER_18_KEY);
+            description = userDataJson.getJSONObject(JSONUtils.SUBREDDIT_KEY).getString(JSONUtils.PUBLIC_DESCRIPTION_KEY);
+            title = userDataJson.getJSONObject(JSONUtils.SUBREDDIT_KEY).getString(JSONUtils.TITLE_KEY);
             canBeFollowed = true;
         } else {
+            isNsfw = false;
+            description = "";
+            title = "";
             canBeFollowed = false;
         }
         int linkKarma = userDataJson.getInt(JSONUtils.LINK_KARMA_KEY);
@@ -151,12 +160,10 @@ public class FetchUserData {
         long cakeday = userDataJson.getLong(JSONUtils.CREATED_UTC_KEY) * 1000;
         boolean isGold = userDataJson.getBoolean(JSONUtils.IS_GOLD_KEY);
         boolean isFriend = userDataJson.getBoolean(JSONUtils.IS_FRIEND_KEY);
-        boolean isNsfw = userDataJson.getJSONObject(JSONUtils.SUBREDDIT_KEY).getBoolean(JSONUtils.OVER_18_KEY);
-        String description = userDataJson.getJSONObject(JSONUtils.SUBREDDIT_KEY).getString(JSONUtils.PUBLIC_DESCRIPTION_KEY);
-        String title = userDataJson.getJSONObject(JSONUtils.SUBREDDIT_KEY).getString(JSONUtils.TITLE_KEY);
+        boolean isMod = userDataJson.getBoolean(JSONUtils.IS_MOD_KEY);
 
         return new UserData(userName, iconImageUrl, bannerImageUrl, linkKarma, commentKarma, awarderKarma,
-                awardeeKarma, totalKarma, cakeday, isGold, isFriend, canBeFollowed, isNsfw, description, title);
+                awardeeKarma, totalKarma, cakeday, isGold, isFriend, canBeFollowed, isNsfw, description, title, isMod);
     }
 
     public interface FetchUserDataListener {
