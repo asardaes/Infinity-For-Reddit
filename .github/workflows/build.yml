@@ -34,8 +34,8 @@ jobs:
     - name: Send apk
       uses: dawidd6/action-send-mail@v5
       with:
-        server_address: smtp.mailgun.org
-        server_port: 465
+        server_address: smtp.eu.mailgun.org
+        server_port: 587
         username: ${{ secrets.MAIL_USERNAME }}
         password: ${{ secrets.MAIL_PASSWORD }}
         to: ${{ secrets.TO_EMAIL }}
