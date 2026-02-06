@@ -61,7 +61,6 @@ import ml.docilealligator.infinityforreddit.apis.RedditAPI;
 import ml.docilealligator.infinityforreddit.asynctasks.AccountManagement;
 import ml.docilealligator.infinityforreddit.comment.Comment;
 import ml.docilealligator.infinityforreddit.customtheme.CustomThemeWrapper;
-import ml.docilealligator.infinityforreddit.customviews.slidr.Slidr;
 import ml.docilealligator.infinityforreddit.databinding.ActivityViewPostDetailBinding;
 import ml.docilealligator.infinityforreddit.events.NeedForPostListFromPostFragmentEvent;
 import ml.docilealligator.infinityforreddit.events.ProvidePostListToViewPostDetailActivityEvent;
@@ -188,7 +187,7 @@ public class ViewPostDetailActivity extends BaseActivity implements SortTypeSele
                 addOnOffsetChangedListener(binding.appbarLayoutViewPostDetailActivity);
             }
 
-            if (isImmersiveInterface()) {
+            if (isImmersiveInterfaceRespectForcedEdgeToEdge()) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                     window.setDecorFitsSystemWindows(false);
                 } else {
@@ -199,7 +198,7 @@ public class ViewPostDetailActivity extends BaseActivity implements SortTypeSele
                     @NonNull
                     @Override
                     public WindowInsetsCompat onApplyWindowInsets(@NonNull View v, @NonNull WindowInsetsCompat insets) {
-                        Insets allInsets = Utils.getInsets(insets, false);
+                        Insets allInsets = Utils.getInsets(insets, false, isForcedImmersiveInterface());
 
                         setMargins(binding.toolbarViewPostDetailActivity,
                                 allInsets.left,
@@ -238,9 +237,7 @@ public class ViewPostDetailActivity extends BaseActivity implements SortTypeSele
 
         boolean swipeBetweenPosts = mSharedPreferences.getBoolean(SharedPreferencesUtils.SWIPE_BETWEEN_POSTS, false);
         if (!swipeBetweenPosts) {
-            if (mSharedPreferences.getBoolean(SharedPreferencesUtils.SWIPE_RIGHT_TO_GO_BACK, true)) {
-                mSliderPanel = Slidr.attach(this);
-            }
+            attachSliderPanelIfApplicable();
             binding.viewPager2ViewPostDetailActivity.setUserInputEnabled(false);
         } else {
             mViewPager2 = binding.viewPager2ViewPostDetailActivity;
@@ -382,6 +379,7 @@ public class ViewPostDetailActivity extends BaseActivity implements SortTypeSele
         binding.getRoot().setBackgroundColor(mCustomThemeWrapper.getBackgroundColor());
         applyAppBarLayoutAndCollapsingToolbarLayoutAndToolbarTheme(binding.appbarLayoutViewPostDetailActivity,
                 binding.collapsingToolbarLayoutViewPostDetailActivity, binding.toolbarViewPostDetailActivity);
+        applyAppBarScrollFlagsIfApplicable(binding.collapsingToolbarLayoutViewPostDetailActivity);
         applyFABTheme(binding.fabViewPostDetailActivity);
         binding.searchPanelMaterialCardViewViewPostDetailActivity.setBackgroundTintList(ColorStateList.valueOf(mCustomThemeWrapper.getColorPrimary()));
         int searchPanelTextAndIconColor = mCustomThemeWrapper.getToolbarPrimaryTextAndIconColor();

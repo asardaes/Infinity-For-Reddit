@@ -33,7 +33,6 @@ import ml.docilealligator.infinityforreddit.Infinity;
 import ml.docilealligator.infinityforreddit.R;
 import ml.docilealligator.infinityforreddit.bottomsheetfragments.PostLayoutBottomSheetFragment;
 import ml.docilealligator.infinityforreddit.customtheme.CustomThemeWrapper;
-import ml.docilealligator.infinityforreddit.customviews.slidr.Slidr;
 import ml.docilealligator.infinityforreddit.databinding.ActivityHistoryBinding;
 import ml.docilealligator.infinityforreddit.events.ChangeNSFWEvent;
 import ml.docilealligator.infinityforreddit.events.SwitchAccountEvent;
@@ -74,9 +73,7 @@ public class HistoryActivity extends BaseActivity implements ActivityToolbarInte
 
         applyCustomTheme();
 
-        if (mSharedPreferences.getBoolean(SharedPreferencesUtils.SWIPE_RIGHT_TO_GO_BACK, true)) {
-            mSliderPanel = Slidr.attach(this);
-        }
+        attachSliderPanelIfApplicable();
 
         mViewPager2 = binding.viewPagerHistoryActivity;
 
@@ -87,7 +84,7 @@ public class HistoryActivity extends BaseActivity implements ActivityToolbarInte
                 addOnOffsetChangedListener(binding.appbarLayoutHistoryActivity);
             }
 
-            if (isImmersiveInterface()) {
+            if (isImmersiveInterfaceRespectForcedEdgeToEdge()) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                     window.setDecorFitsSystemWindows(false);
                 } else {
@@ -99,7 +96,7 @@ public class HistoryActivity extends BaseActivity implements ActivityToolbarInte
                     @NonNull
                     @Override
                     public WindowInsetsCompat onApplyWindowInsets(@NonNull View v, @NonNull WindowInsetsCompat insets) {
-                        Insets allInsets = Utils.getInsets(insets, false);
+                        Insets allInsets = Utils.getInsets(insets, false, isForcedImmersiveInterface());
 
                         setMargins(binding.toolbarHistoryActivity,
                                 allInsets.left,
@@ -154,6 +151,7 @@ public class HistoryActivity extends BaseActivity implements ActivityToolbarInte
         binding.getRoot().setBackgroundColor(mCustomThemeWrapper.getBackgroundColor());
         applyAppBarLayoutAndCollapsingToolbarLayoutAndToolbarTheme(binding.appbarLayoutHistoryActivity,
                 binding.collapsingToolbarLayoutHistoryActivity, binding.toolbarHistoryActivity);
+        applyAppBarScrollFlagsIfApplicable(binding.collapsingToolbarLayoutHistoryActivity);
         applyTabLayoutTheme(binding.tabLayoutTabLayoutHistoryActivityActivity);
     }
 

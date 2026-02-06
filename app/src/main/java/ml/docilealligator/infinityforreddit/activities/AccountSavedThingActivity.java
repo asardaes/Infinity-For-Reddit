@@ -38,7 +38,6 @@ import ml.docilealligator.infinityforreddit.R;
 import ml.docilealligator.infinityforreddit.RedditDataRoomDatabase;
 import ml.docilealligator.infinityforreddit.bottomsheetfragments.PostLayoutBottomSheetFragment;
 import ml.docilealligator.infinityforreddit.customtheme.CustomThemeWrapper;
-import ml.docilealligator.infinityforreddit.customviews.slidr.Slidr;
 import ml.docilealligator.infinityforreddit.databinding.ActivityAccountSavedThingBinding;
 import ml.docilealligator.infinityforreddit.events.ChangeNSFWEvent;
 import ml.docilealligator.infinityforreddit.events.SwitchAccountEvent;
@@ -94,9 +93,7 @@ public class AccountSavedThingActivity extends BaseActivity implements ActivityT
 
         applyCustomTheme();
 
-        if (mSharedPreferences.getBoolean(SharedPreferencesUtils.SWIPE_RIGHT_TO_GO_BACK, true)) {
-            mSliderPanel = Slidr.attach(this);
-        }
+        attachSliderPanelIfApplicable();
 
         mViewPager2 = binding.accountSavedThingViewPager2;
 
@@ -107,7 +104,7 @@ public class AccountSavedThingActivity extends BaseActivity implements ActivityT
                 addOnOffsetChangedListener(binding.accountSavedThingAppbarLayout);
             }
 
-            if (isImmersiveInterface()) {
+            if (isImmersiveInterfaceRespectForcedEdgeToEdge()) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                     window.setDecorFitsSystemWindows(false);
                 } else {
@@ -119,7 +116,7 @@ public class AccountSavedThingActivity extends BaseActivity implements ActivityT
                     @NonNull
                     @Override
                     public WindowInsetsCompat onApplyWindowInsets(@NonNull View v, @NonNull WindowInsetsCompat insets) {
-                        Insets allInsets = Utils.getInsets(insets, false);
+                        Insets allInsets = Utils.getInsets(insets, false, isForcedImmersiveInterface());
 
                         setMargins(binding.accountSavedThingToolbar,
                                 allInsets.left,
@@ -178,6 +175,7 @@ public class AccountSavedThingActivity extends BaseActivity implements ActivityT
                 binding.accountSavedThingAppbarLayout,
                 binding.accountSavedThingCollapsingToolbarLayout,
                 binding.accountSavedThingToolbar);
+        applyAppBarScrollFlagsIfApplicable(binding.accountSavedThingCollapsingToolbarLayout);
         applyTabLayoutTheme(binding.accountSavedThingTabLayout);
     }
 
