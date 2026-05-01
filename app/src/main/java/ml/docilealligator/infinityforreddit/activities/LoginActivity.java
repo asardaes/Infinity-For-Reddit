@@ -1,5 +1,7 @@
 package ml.docilealligator.infinityforreddit.activities;
 
+import static ml.docilealligator.infinityforreddit.utils.UtilsKt.getChromeCustomTabPackageName;
+
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -14,6 +16,8 @@ import android.view.InflateException;
 import android.view.MenuItem;
 import android.view.View;
 import android.webkit.CookieManager;
+import android.webkit.WebResourceError;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.TextView;
@@ -80,7 +84,7 @@ public class LoginActivity extends BaseActivity {
     @Inject
     Executor mExecutor;
     private String authCode;
-    private boolean isAgreeToUserAgreement = false;
+    private boolean isAgreeToUserAgreement = true;
     private ActivityLoginBinding binding;
 
     @Override
@@ -148,6 +152,12 @@ public class LoginActivity extends BaseActivity {
 
         binding.webviewLoginActivity.getSettings().setJavaScriptEnabled(true);
 
+        String userAgent = binding.webviewLoginActivity.getSettings().getUserAgentString();
+        String chromeUserAgent = userAgent
+                .replace("; wv)", ")")
+                .replace("Version/4.0 ", "");
+        binding.webviewLoginActivity.getSettings().setUserAgentString(chromeUserAgent);
+
         Uri baseUri = Uri.parse(APIUtils.OAUTH_URL);
         Uri.Builder uriBuilder = baseUri.buildUpon();
         uriBuilder.appendQueryParameter(APIUtils.CLIENT_ID_KEY, APIUtils.CLIENT_ID);
@@ -159,10 +169,18 @@ public class LoginActivity extends BaseActivity {
 
         String url = uriBuilder.toString();
 
+        binding.internetDisconnectedErrorRetryButtonLoginActivity.setOnClickListener(view -> {
+            recreate();
+        });
+
         binding.fabLoginActivity.setOnClickListener(view -> {
-            Intent intent = new Intent(this, LoginChromeCustomTabActivity.class);
-            startActivity(intent);
-            finish();
+            if (getChromeCustomTabPackageName(this) == null) {
+                Toast.makeText(this, R.string.login_chrome_required, Toast.LENGTH_SHORT).show();
+            } else {
+                Intent intent = new Intent(this, LoginChromeCustomTabActivity.class);
+                startActivity(intent);
+                finish();
+            }
         });
 
         CookieManager.getInstance().removeAllCookies(aBoolean -> {
@@ -270,6 +288,15 @@ public class LoginActivity extends BaseActivity {
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
             }
+
+            @Override
+            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                if (request.isForMainFrame() && !Utils.isConnectedToInternet(LoginActivity.this)) {
+                    binding.internetDisconnectedErrorLinearLayoutLoginActivity.setVisibility(View.VISIBLE);
+                } else {
+                    super.onReceivedError(view, request, error);
+                }
+            }
         });
 
         if (!isAgreeToUserAgreement) {
@@ -334,14 +361,22 @@ public class LoginActivity extends BaseActivity {
 
     @Override
     protected void applyCustomTheme() {
-        binding.getRoot().setBackgroundColor(mCustomThemeWrapper.getBackgroundColor());
+        int backgroundColor = mCustomThemeWrapper.getBackgroundColor();
+        binding.getRoot().setBackgroundColor(backgroundColor);
         applyAppBarLayoutAndCollapsingToolbarLayoutAndToolbarTheme(binding.appbarLayoutLoginActivity, null, binding.toolbarLoginActivity);
-        binding.twoFaInfOTextViewLoginActivity.setTextColor(mCustomThemeWrapper.getPrimaryTextColor());
+        int primaryTextColor = mCustomThemeWrapper.getPrimaryTextColor();
+        binding.twoFaInfOTextViewLoginActivity.setTextColor(primaryTextColor);
         Drawable infoDrawable = Utils.getTintedDrawable(this, R.drawable.ic_info_preference_day_night_24dp, mCustomThemeWrapper.getPrimaryIconColor());
         binding.twoFaInfOTextViewLoginActivity.setCompoundDrawablesWithIntrinsicBounds(infoDrawable, null, null, null);
+        binding.internetDisconnectedErrorLinearLayoutLoginActivity.setBackgroundColor(backgroundColor);
+        binding.internetDisconnectedErrorTextViewLoginActivity.setTextColor(primaryTextColor);
+        binding.internetDisconnectedErrorRetryButtonLoginActivity.setTextColor(mCustomThemeWrapper.getButtonTextColor());
+        binding.internetDisconnectedErrorRetryButtonLoginActivity.setBackgroundColor(mCustomThemeWrapper.getColorPrimaryLightTheme());
         applyFABTheme(binding.fabLoginActivity);
         if (typeface != null) {
             binding.twoFaInfOTextViewLoginActivity.setTypeface(typeface);
+            binding.internetDisconnectedErrorTextViewLoginActivity.setTypeface(typeface);
+            binding.internetDisconnectedErrorRetryButtonLoginActivity.setTypeface(typeface);
         }
     }
 
