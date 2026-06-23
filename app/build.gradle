@@ -6,13 +6,13 @@ plugins {
 }
 
 android {
-    compileSdk 36
+    compileSdk = 36
     defaultConfig {
         applicationId "ml.docilealligator.infinityforreddit"
         minSdk 21
         targetSdk 35
-        versionCode 216
-        versionName "8.2.0"
+        versionCode 223
+        versionName "8.3.0-beta2"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         javaCompileOptions {
             annotationProcessorOptions {

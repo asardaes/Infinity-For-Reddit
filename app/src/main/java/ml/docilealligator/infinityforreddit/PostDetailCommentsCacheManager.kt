@@ -3,25 +3,24 @@ package ml.docilealligator.infinityforreddit
 import ml.docilealligator.infinityforreddit.comment.Comment
 import ml.docilealligator.infinityforreddit.commentfilter.CommentFilter
 import ml.docilealligator.infinityforreddit.post.Post
+import ml.docilealligator.infinityforreddit.thing.SortType
 
 class PostDetailCommentsCacheManager(
-    val cacheMap: LinkedHashMap<String, PostDetailCommentsCache> = AutoRemovalLinkedHashMap<String, PostDetailCommentsCache>(10)
+    val cacheMap: AutoRemovalLinkedHashMap<String, PostDetailCommentsCache>
 ) {
     fun saveCache(
         post: Post,
         visibleComments: ArrayList<Comment>,
         children: ArrayList<String>?,
-        commentFilter: CommentFilter?,
-        scrollPosition: Int,
-        hasMoreChildren: Boolean
+        sortType: SortType.Type,
+        scrollPosition: Int
     ) {
         cacheMap[post.id] = PostDetailCommentsCache(
             post,
             visibleComments,
             children,
-            commentFilter,
-            scrollPosition,
-            hasMoreChildren
+            sortType,
+            scrollPosition
         )
     }
 
@@ -41,5 +40,13 @@ class PostDetailCommentsCacheManager(
 
     fun removeCache(postId: String?) {
         cacheMap.remove(postId);
+    }
+
+    fun setCapacity(capacity: Int) {
+        if (capacity < 0) {
+            return
+        }
+
+        cacheMap.maxSize = capacity
     }
 }

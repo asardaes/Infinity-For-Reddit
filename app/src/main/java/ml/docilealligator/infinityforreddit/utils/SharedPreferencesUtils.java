@@ -237,6 +237,8 @@ public class SharedPreferencesUtils {
     public static final String SWIPE_RIGHT_TO_GO_BACK_SENSITIVITY = "swipe_right_to_go_back_sensitivity";
     public static final String SWIPE_ACTION_SENSITIVITY_IN_COMMENTS = "swipe_action_sensitivity_in_comments";
     public static final String NAVIGATION_DRAWER_SWIPE_AREA = "navigation_drawer_swipe_area";
+    public static final String COMMENT_THREAD_CONTINUITY_CAPACITY = "comment_thread_continuity_capacity";
+    public static final String CURRENT_VERSION = "current_version";
 
     public static String getPostDetailFabPortraitX(@Nullable Display display) {
         if (display == null) {
@@ -447,6 +449,8 @@ public class SharedPreferencesUtils {
     public static final String PROXY_TYPE = "proxy_type";
     public static final String PROXY_HOSTNAME = "proxy_hostname";
     public static final String PROXY_PORT = "proxy_port";
+
+    public static final String COOKIE_SHARED_PREFERENCES_FILE = "ml.docilealligator.infinityforreddit.cookie";
 
     //Legacy Settings
     public static final String MAIN_PAGE_TAB_1_TITLE_LEGACY = "main_page_tab_1_title";

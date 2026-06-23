@@ -46,6 +46,7 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
 
@@ -100,6 +101,7 @@ import ml.docilealligator.infinityforreddit.events.ShowDividerInCompactLayoutPre
 import ml.docilealligator.infinityforreddit.events.ShowThumbnailOnTheLeftInCompactLayoutEvent;
 import ml.docilealligator.infinityforreddit.managers.VideoMuteManager;
 import ml.docilealligator.infinityforreddit.post.Post;
+import ml.docilealligator.infinityforreddit.user.UserProfileImagesBatchLoader;
 import ml.docilealligator.infinityforreddit.utils.SharedPreferencesLiveDataKt;
 import ml.docilealligator.infinityforreddit.utils.SharedPreferencesUtils;
 import ml.docilealligator.infinityforreddit.utils.Utils;
@@ -181,8 +183,8 @@ public abstract class PostFragmentBase extends Fragment {
                         if (mLinearLayoutManager != null) {
                             setCurrentPosition(mLinearLayoutManager.findFirstVisibleItemPosition());
                         } else {
-                            int[] into = new int[2];
-                            setCurrentPosition(mStaggeredGridLayoutManager.findFirstVisibleItemPositions(into)[1]);
+                            int[] into = new int[mStaggeredGridLayoutManager.getSpanCount()];
+                            setCurrentPosition(mStaggeredGridLayoutManager.findFirstVisibleItemPositions(into)[into.length - 1]);
                         }
                     }
 
@@ -506,12 +508,15 @@ public abstract class PostFragmentBase extends Fragment {
 
     public abstract void changePostLayout(int postLayout, boolean temporary);
 
+    @Nullable
     public final Boolean getMasterMutingOption() {
-        return mVideoMuteManager.isMuted();
+        return mVideoMuteManager.getMasterMutingOption();
     }
 
     public final void videoAutoplayChangeMutingOption(boolean isMute) {
-        mVideoMuteManager.setMuted(isMute);
+        if (mVideoMuteManager.getRememberMuteOption()) {
+            mVideoMuteManager.setMuted(isMute);
+        }
     }
 
     public boolean getIsNsfwSubreddit() {
@@ -530,7 +535,7 @@ public abstract class PostFragmentBase extends Fragment {
         return false;
     }
 
-    public final void loadIcon(String subredditOrUserName, boolean isSubreddit, LoadIconListener loadIconListener) {
+    public final void loadIcon(String subredditOrUserName, boolean isSubreddit, UserProfileImagesBatchLoader.LoadIconListener loadIconListener) {
         if (subredditOrUserIcons.containsKey(subredditOrUserName)) {
             loadIconListener.loadIconSuccess(subredditOrUserName, subredditOrUserIcons.get(subredditOrUserName));
         } else {
@@ -550,6 +555,8 @@ public abstract class PostFragmentBase extends Fragment {
             }
         }
     }
+
+    public abstract void loadUserIcon(List<Post> posts, UserProfileImagesBatchLoader.LoadIconListener loadIconListener);
 
     protected abstract boolean scrollPostsByCount(int count);
 
@@ -605,6 +612,10 @@ public abstract class PostFragmentBase extends Fragment {
             Post post = posts.get(event.positionInList);
             if (post != null && post.getFullName().equals(event.post.getFullName())) {
                 post.setTitle(event.post.getTitle());
+                post.setSelfText(event.post.getSelfText());
+                post.setSelfTextPlain(event.post.getSelfTextPlain());
+                post.setSelfTextPlainTrimmed(event.post.getSelfTextPlainTrimmed());
+                post.setMediaMetadataMap(event.post.getMediaMetadataMap());
                 post.setVoteType(event.post.getVoteType());
                 post.setScore(event.post.getScore());
                 post.setNComments(event.post.getNComments());
@@ -1021,9 +1032,5 @@ public abstract class PostFragmentBase extends Fragment {
                 }
             }
         }
-    }
-
-    public interface LoadIconListener {
-        void loadIconSuccess(String subredditOrUserName, String iconUrl);
     }
 }
