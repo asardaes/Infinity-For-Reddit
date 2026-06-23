@@ -52,8 +52,8 @@ public class APIUtils {
     public static final String AUTHORIZATION_KEY = "Authorization";
     public static final String AUTHORIZATION_BASE = "bearer ";
     public static final String USER_AGENT_KEY = "User-Agent";
-    public static final String USER_AGENT = "android:personal-app:" + BuildConfig.VERSION_NAME + " (by /u/asardaes)";
-    public static final String ANONYMOUS_USER_AGENT = "ml.docilealligator.infinityforreddit:" + BuildConfig.VERSION_NAME + " (by /u/Hostilenemy)";
+    public static final String USER_AGENT = "android:personal-app:latest (by /u/asardaes)";
+    public static final String ANONYMOUS_USER_AGENT = "";
     public static final String USERNAME_KEY = "username";
 
     public static final String GRANT_TYPE_KEY = "grant_type";
