@@ -33,6 +33,8 @@ import ml.docilealligator.infinityforreddit.activities.LockScreenActivity;
 import ml.docilealligator.infinityforreddit.activities.LoginActivity;
 import ml.docilealligator.infinityforreddit.activities.LoginChromeCustomTabActivity;
 import ml.docilealligator.infinityforreddit.activities.MainActivity;
+import ml.docilealligator.infinityforreddit.activities.NewFeaturesActivity;
+import ml.docilealligator.infinityforreddit.activities.OnboardingActivity;
 import ml.docilealligator.infinityforreddit.activities.PostFilterPreferenceActivity;
 import ml.docilealligator.infinityforreddit.activities.PostFilterUsageListingActivity;
 import ml.docilealligator.infinityforreddit.activities.PostGalleryActivity;
@@ -51,6 +53,7 @@ import ml.docilealligator.infinityforreddit.activities.SearchUsersResultActivity
 import ml.docilealligator.infinityforreddit.activities.SelectUserFlairActivity;
 import ml.docilealligator.infinityforreddit.activities.SelectedSubredditsAndUsersActivity;
 import ml.docilealligator.infinityforreddit.activities.SendPrivateMessageActivity;
+import ml.docilealligator.infinityforreddit.activities.SetReminderActivity;
 import ml.docilealligator.infinityforreddit.activities.SettingsActivity;
 import ml.docilealligator.infinityforreddit.activities.SubmitCrosspostActivity;
 import ml.docilealligator.infinityforreddit.activities.SubredditMultiselectionActivity;
@@ -71,6 +74,7 @@ import ml.docilealligator.infinityforreddit.bottomsheetfragments.AccountChooserB
 import ml.docilealligator.infinityforreddit.bottomsheetfragments.FlairBottomSheetFragment;
 import ml.docilealligator.infinityforreddit.bottomsheetfragments.ImportantInfoBottomSheetFragment;
 import ml.docilealligator.infinityforreddit.bottomsheetfragments.PostOptionsBottomSheetFragment;
+import ml.docilealligator.infinityforreddit.broadcastreceivers.BootCompletedBroadcastReceiver;
 import ml.docilealligator.infinityforreddit.fragments.CommentsListingFragment;
 import ml.docilealligator.infinityforreddit.fragments.CustomThemeListingFragment;
 import ml.docilealligator.infinityforreddit.fragments.FollowedUsersListingFragment;
@@ -89,6 +93,7 @@ import ml.docilealligator.infinityforreddit.fragments.ViewPostDetailFragment;
 import ml.docilealligator.infinityforreddit.fragments.ViewPostDetailFragmentNew;
 import ml.docilealligator.infinityforreddit.fragments.ViewRedditGalleryImageOrGifFragment;
 import ml.docilealligator.infinityforreddit.fragments.ViewRedditGalleryVideoFragment;
+import ml.docilealligator.infinityforreddit.broadcastreceivers.ReminderAlarmReceiver;
 import ml.docilealligator.infinityforreddit.services.DownloadMediaService;
 import ml.docilealligator.infinityforreddit.services.DownloadRedditVideoService;
 import ml.docilealligator.infinityforreddit.services.EditProfileService;
@@ -335,6 +340,16 @@ public interface AppComponent {
     void inject(ImportantInfoBottomSheetFragment importantInfoBottomSheetFragment);
 
     void inject(ReminderListingActivity reminderListingActivity);
+
+    void inject(SetReminderActivity setReminderActivity);
+
+    void inject(ReminderAlarmReceiver reminderAlarmReceiver);
+
+    void inject(OnboardingActivity onboardingActivity);
+
+    void inject(BootCompletedBroadcastReceiver bootCompletedBroadcastReceiver);
+
+    void inject(NewFeaturesActivity newFeaturesActivity);
 
     @Component.Factory
     interface Factory {

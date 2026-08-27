@@ -62,16 +62,18 @@ import ml.docilealligator.infinityforreddit.adapters.Paging3LoadingStateAdapter;
 import ml.docilealligator.infinityforreddit.adapters.PostRecyclerViewAdapter;
 import ml.docilealligator.infinityforreddit.apis.StreamableAPI;
 import ml.docilealligator.infinityforreddit.bottomsheetfragments.FABMoreOptionsBottomSheetFragment;
+import ml.docilealligator.infinityforreddit.bottomsheetfragments.FlairBottomSheetFragment;
 import ml.docilealligator.infinityforreddit.customviews.LinearLayoutManagerBugFixed;
 import ml.docilealligator.infinityforreddit.databinding.FragmentPostBinding;
 import ml.docilealligator.infinityforreddit.events.ChangeDefaultPostLayoutEvent;
-import ml.docilealligator.infinityforreddit.events.ChangeNetworkStatusEvent;
 import ml.docilealligator.infinityforreddit.events.ChangeSavePostFeedScrolledPositionEvent;
+import ml.docilealligator.infinityforreddit.events.FlairSelectedEvent;
 import ml.docilealligator.infinityforreddit.events.NeedForPostListFromPostFragmentEvent;
 import ml.docilealligator.infinityforreddit.events.PostUpdateEventToPostDetailFragment;
 import ml.docilealligator.infinityforreddit.events.PostUpdateEventToPostList;
 import ml.docilealligator.infinityforreddit.events.ProvidePostListToViewPostDetailActivityEvent;
 import ml.docilealligator.infinityforreddit.post.Post;
+import ml.docilealligator.infinityforreddit.post.PostPagingSource;
 import ml.docilealligator.infinityforreddit.post.PostType;
 import ml.docilealligator.infinityforreddit.post.PostViewModel;
 import ml.docilealligator.infinityforreddit.postfilter.PostFilter;
@@ -861,6 +863,22 @@ public class PostFragment extends PostFragmentBase implements FragmentCommunicat
             }
         });
 
+        SharedPreferencesLiveDataKt.booleanLiveData(mSharedPreferences, SharedPreferencesUtils.SHOW_GALLERY_MEDIA_AS_GRID, false).observe(getViewLifecycleOwner(), showGalleryMediaAsGrid -> {
+            if (getPostAdapter() != null) {
+                if (getPostAdapter().setShowGalleryMediaAsGrid(showGalleryMediaAsGrid)) {
+                    refreshAdapter();
+                }
+            }
+        });
+
+        SharedPreferencesLiveDataKt.booleanLiveData(mSharedPreferences, SharedPreferencesUtils.SHOW_POST_AND_COMMENT_TOOLBAR_ITEMS_BASED_ON_SPACE, false).observe(getViewLifecycleOwner(), showPostAndCommentToolbarItemsBasedOnSpace -> {
+            if (getPostAdapter() != null) {
+                if (getPostAdapter().setShowToolbarItemsBasedOnSpace(showPostAndCommentToolbarItemsBasedOnSpace)) {
+                    refreshAdapter();
+                }
+            }
+        });
+
         return binding.getRoot();
     }
 
@@ -959,7 +977,18 @@ public class PostFragment extends PostFragmentBase implements FragmentCommunicat
                 }
             } else if (refreshLoadState instanceof LoadState.Error) {
                 binding.fetchPostInfoLinearLayoutPostFragment.setOnClickListener(view -> refresh());
-                showErrorView(R.string.load_posts_error);
+                Throwable e = ((LoadState.Error) refreshLoadState).getError();
+                if (e instanceof PostPagingSource.PostPagingSourceError) {
+                    if (((PostPagingSource.PostPagingSourceError) e).code == 403 && Account.ANONYMOUS_ACCOUNT.equals(mActivity.accountName)) {
+                        showErrorView(R.string.load_posts_error_anonymous_403);
+                    } else if (((PostPagingSource.PostPagingSourceError) e).message != null) {
+                        showErrorView(getString(R.string.load_posts_error_with_reason, ((PostPagingSource.PostPagingSourceError) e).message));
+                    } else {
+                        showErrorView(R.string.load_posts_error);
+                    }
+                } else {
+                    showErrorView(R.string.load_posts_error);
+                }
             }
             if (!(refreshLoadState instanceof LoadState.Loading) && appendLoadState instanceof LoadState.NotLoading) {
                 if (appendLoadState.getEndOfPaginationReached() && mAdapter.getItemCount() < 1) {
@@ -1150,6 +1179,16 @@ public class PostFragment extends PostFragmentBase implements FragmentCommunicat
             binding.swipeRefreshLayoutPostFragment.setRefreshing(false);
             binding.fetchPostInfoLinearLayoutPostFragment.setVisibility(View.VISIBLE);
             binding.fetchPostInfoTextViewPostFragment.setText(stringResId);
+            mGlide.load(R.drawable.error_image).into(binding.fetchPostInfoImageViewPostFragment);
+        }
+    }
+
+    @Override
+    protected void showErrorView(String errorMessage) {
+        if (mActivity != null && isAdded()) {
+            binding.swipeRefreshLayoutPostFragment.setRefreshing(false);
+            binding.fetchPostInfoLinearLayoutPostFragment.setVisibility(View.VISIBLE);
+            binding.fetchPostInfoTextViewPostFragment.setText(errorMessage);
             mGlide.load(R.drawable.error_image).into(binding.fetchPostInfoImageViewPostFragment);
         }
     }
@@ -1355,27 +1394,6 @@ public class PostFragment extends PostFragmentBase implements FragmentCommunicat
     }
 
     @Subscribe
-    public void onChangeNetworkStatusEvent(ChangeNetworkStatusEvent changeNetworkStatusEvent) {
-        if (mAdapter != null) {
-            String autoplay = mSharedPreferences.getString(SharedPreferencesUtils.VIDEO_AUTOPLAY, SharedPreferencesUtils.VIDEO_AUTOPLAY_VALUE_NEVER);
-            String dataSavingMode = mSharedPreferences.getString(SharedPreferencesUtils.DATA_SAVING_MODE, SharedPreferencesUtils.DATA_SAVING_MODE_OFF);
-            boolean stateChanged = false;
-            if (autoplay.equals(SharedPreferencesUtils.VIDEO_AUTOPLAY_VALUE_ON_WIFI)) {
-                mAdapter.setAutoplay(changeNetworkStatusEvent.connectedNetwork == Utils.NETWORK_TYPE_WIFI);
-                stateChanged = true;
-            }
-            if (dataSavingMode.equals(SharedPreferencesUtils.DATA_SAVING_MODE_ONLY_ON_CELLULAR_DATA)) {
-                mAdapter.setDataSavingMode(changeNetworkStatusEvent.connectedNetwork == Utils.NETWORK_TYPE_CELLULAR);
-                stateChanged = true;
-            }
-
-            if (stateChanged) {
-                refreshAdapter();
-            }
-        }
-    }
-
-    @Subscribe
     public void onChangeSavePostFeedScrolledPositionEvent(ChangeSavePostFeedScrolledPositionEvent changeSavePostFeedScrolledPositionEvent) {
         savePostFeedScrolledPosition = changeSavePostFeedScrolledPositionEvent.savePostFeedScrolledPosition;
     }
@@ -1388,6 +1406,11 @@ public class PostFragment extends PostFragmentBase implements FragmentCommunicat
                     concatenatedSubredditNames, username, where, multiRedditPath, query, trendingSource,
                     ReadPostType.INVALID, postFilter, sortType, readPostsList));
         }
+    }
+
+    @Subscribe
+    public void onFlairSelectedEvent(FlairSelectedEvent event) {
+
     }
 
     @Override
@@ -1484,6 +1507,17 @@ public class PostFragment extends PostFragmentBase implements FragmentCommunicat
     @Override
     public void toggleSpoiler(@NonNull Post post, int position) {
         mPostViewModel.toggleSpoiler(post, position);
+    }
+
+    @Override
+    public void changeFlair(@NonNull Post post, int position) {
+        FlairBottomSheetFragment flairBottomSheetFragment = new FlairBottomSheetFragment();
+        Bundle bundle = new Bundle();
+        bundle.putString(FlairBottomSheetFragment.EXTRA_SUBREDDIT_NAME, post.getSubredditName());
+        bundle.putLong(FlairBottomSheetFragment.EXTRA_CALLING_FRAGMENT_ID, postFragmentId);
+        bundle.putBoolean(FlairBottomSheetFragment.EXTRA_SHOW_REMOVE_FLAIR_OPTION, true);
+        flairBottomSheetFragment.setArguments(bundle);
+        flairBottomSheetFragment.show(mActivity.getSupportFragmentManager(), flairBottomSheetFragment.getTag());
     }
 
     @Override

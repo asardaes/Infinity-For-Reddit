@@ -154,6 +154,8 @@ public abstract class PostFragmentBase extends Fragment {
     protected AdjustableTouchSlopItemTouchHelper touchHelper;
     private boolean shouldSwipeBack;
     protected final Map<String, String> subredditOrUserIcons = new HashMap<>();
+    private View.OnLayoutChangeListener onLayoutChangeListener;
+    private int recyclerViewWidth;
 
     public PostFragmentBase() {
         // Required empty public constructor
@@ -322,6 +324,26 @@ public abstract class PostFragmentBase extends Fragment {
             return false;
         });
 
+        onLayoutChangeListener = (v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
+            int width = right - left;
+            if (recyclerViewWidth == width) {
+                return;
+            }
+            recyclerViewWidth = width;
+            PostRecyclerViewAdapter adapter = getPostAdapter();
+            if (adapter != null) {
+                if (mStaggeredGridLayoutManager != null) {
+                    width /= mStaggeredGridLayoutManager.getSpanCount();
+                }
+                int finalWidth = width;
+                v.post(() -> {
+                    adapter.provideItemWidth(Utils.convertPxToDp(finalWidth, mActivity));
+                    refreshAdapter();
+                });
+            }
+        };
+        getPostRecyclerView().addOnLayoutChangeListener(onLayoutChangeListener);
+
         SharedPreferencesLiveDataKt.stringLiveData(mSharedPreferences, SharedPreferencesUtils.LONG_PRESS_POST_NON_MEDIA_AREA, SharedPreferencesUtils.LONG_PRESS_POST_VALUE_SHOW_POST_OPTIONS).observe(getViewLifecycleOwner(), s -> {
             if (getPostAdapter() != null) {
                 getPostAdapter().setLongPressPostNonMediaAreaAction(s);
@@ -353,6 +375,15 @@ public abstract class PostFragmentBase extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         ViewCompat.requestApplyInsets(view);
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (onLayoutChangeListener != null) {
+            getPostRecyclerView().removeOnLayoutChangeListener(onLayoutChangeListener);
+            onLayoutChangeListener = null;
+        }
     }
 
     @Override
@@ -592,6 +623,8 @@ public abstract class PostFragmentBase extends Fragment {
 
     protected abstract void showErrorView(int stringResId);
 
+    protected abstract void showErrorView(String errorMessage);
+
     @NonNull
     protected abstract SwipeRefreshLayout getSwipeRefreshLayout();
 
@@ -768,12 +801,14 @@ public abstract class PostFragmentBase extends Fragment {
             String dataSavingMode = mSharedPreferences.getString(SharedPreferencesUtils.DATA_SAVING_MODE, SharedPreferencesUtils.DATA_SAVING_MODE_OFF);
             boolean stateChanged = false;
             if (autoplay.equals(SharedPreferencesUtils.VIDEO_AUTOPLAY_VALUE_ON_WIFI)) {
-                getPostAdapter().setAutoplay(changeNetworkStatusEvent.connectedNetwork == Utils.NETWORK_TYPE_WIFI);
-                stateChanged = true;
+                if (getPostAdapter().setAutoplay(changeNetworkStatusEvent.connectedNetwork == Utils.NETWORK_TYPE_WIFI)) {
+                    stateChanged = true;
+                }
             }
             if (dataSavingMode.equals(SharedPreferencesUtils.DATA_SAVING_MODE_ONLY_ON_CELLULAR_DATA)) {
-                getPostAdapter().setDataSavingMode(changeNetworkStatusEvent.connectedNetwork == Utils.NETWORK_TYPE_CELLULAR);
-                stateChanged = true;
+                if (getPostAdapter().setDataSavingMode(changeNetworkStatusEvent.connectedNetwork == Utils.NETWORK_TYPE_CELLULAR)) {
+                    stateChanged = true;
+                }
             }
 
             if (stateChanged) {
@@ -963,7 +998,7 @@ public abstract class PostFragmentBase extends Fragment {
     protected static class StaggeredGridLayoutManagerItemOffsetDecoration extends RecyclerView.ItemDecoration {
 
         private final int mHalfOffset;
-        private final int mQuaterOffset;
+        private final int mQuarterOffset;
         private final int mCard3HorizontalSpace;
         private final int mCard3VerticalSpace;
         private final int mNColumns;
@@ -973,7 +1008,7 @@ public abstract class PostFragmentBase extends Fragment {
             mCard3HorizontalSpace = -itemOffset / 4 * 3;
             mCard3VerticalSpace = -itemOffset / 4;
             mHalfOffset = itemOffset / 2;
-            mQuaterOffset = itemOffset / 4;
+            mQuarterOffset = itemOffset / 4;
         }
 
         StaggeredGridLayoutManagerItemOffsetDecoration(@NonNull Context context, @DimenRes int itemOffsetId, int nColumns) {
@@ -1018,17 +1053,17 @@ public abstract class PostFragmentBase extends Fragment {
 
             if (mNColumns == 2) {
                 if (spanIndex == 0) {
-                    outRect.set(mHalfOffset, 0, mQuaterOffset, 0);
+                    outRect.set(mHalfOffset, 0, mQuarterOffset, 0);
                 } else {
-                    outRect.set(mQuaterOffset, 0, mHalfOffset, 0);
+                    outRect.set(mQuarterOffset, 0, mHalfOffset, 0);
                 }
             } else if (mNColumns == 3) {
                 if (spanIndex == 0) {
-                    outRect.set(mHalfOffset, 0, mQuaterOffset, 0);
+                    outRect.set(mHalfOffset, 0, mQuarterOffset, 0);
                 } else if (spanIndex == 1) {
-                    outRect.set(mQuaterOffset, 0, mQuaterOffset, 0);
+                    outRect.set(mQuarterOffset, 0, mQuarterOffset, 0);
                 } else {
-                    outRect.set(mQuaterOffset, 0, mHalfOffset, 0);
+                    outRect.set(mQuarterOffset, 0, mHalfOffset, 0);
                 }
             }
         }

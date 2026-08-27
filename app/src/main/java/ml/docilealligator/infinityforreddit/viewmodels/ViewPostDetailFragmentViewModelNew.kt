@@ -1,5 +1,6 @@
 package ml.docilealligator.infinityforreddit.viewmodels
 
+import android.content.Context
 import android.content.SharedPreferences
 import androidx.annotation.Nullable
 import androidx.core.content.edit
@@ -9,6 +10,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
+import androidx.paging.PagingSource
+import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,7 +19,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ml.docilealligator.infinityforreddit.AppResult
 import ml.docilealligator.infinityforreddit.PostDetailCommentsCache
+import ml.docilealligator.infinityforreddit.R
 import ml.docilealligator.infinityforreddit.RedditDataRoomDatabase
+import ml.docilealligator.infinityforreddit.RedditError
 import ml.docilealligator.infinityforreddit.SingleLiveEvent
 import ml.docilealligator.infinityforreddit.account.Account
 import ml.docilealligator.infinityforreddit.apis.RedditAPIKt
@@ -28,6 +33,7 @@ import ml.docilealligator.infinityforreddit.moderation.CommentModerationEvent
 import ml.docilealligator.infinityforreddit.moderation.PostModerationEvent
 import ml.docilealligator.infinityforreddit.post.ParsePost
 import ml.docilealligator.infinityforreddit.post.Post
+import ml.docilealligator.infinityforreddit.post.PostPagingSource.PostPagingSourceError
 import ml.docilealligator.infinityforreddit.post.hidePost
 import ml.docilealligator.infinityforreddit.post.unhidePost
 import ml.docilealligator.infinityforreddit.readpost.ReadPostType
@@ -77,11 +83,11 @@ class ViewPostDetailFragmentViewModelNew(
         val isInitialLoading: Boolean,
         val isInitialLoadingFailed: Boolean,
         val fetchPostFailed: Boolean,
-        val isFetchingComments: Boolean,
         val isRefreshing: Boolean,
         val isLoadingMoreChildren: Boolean,
         val loadMoreChildrenSuccess: Boolean,
-        val shouldShowErrorView: Boolean,
+        //val shouldShowErrorView: Boolean,
+        val errorViewError: ViewPostDetailFragmentViewModelError?,
         val singleCommentId: String?
     )
 
@@ -100,11 +106,26 @@ class ViewPostDetailFragmentViewModelNew(
         val children: ArrayList<String>
     )
 
-    sealed class SubredditError {
-        data class Network(val e: Exception?) : SubredditError()
-        data class Response(val code: Int, val message: String?) : SubredditError()
-        object Quarantined : SubredditError()
-        data class Json(val e: JSONException?) : SubredditError()
+    sealed class ViewPostDetailFragmentViewModelError {
+        data class Network(val e: Exception?) : ViewPostDetailFragmentViewModelError()
+        data class Response(val code: Int, val message: String?) : ViewPostDetailFragmentViewModelError()
+        object Quarantined : ViewPostDetailFragmentViewModelError()
+        data class Json(val e: JSONException?) : ViewPostDetailFragmentViewModelError()
+        data class RedditErrorWrapper(val e: RedditError) : ViewPostDetailFragmentViewModelError()
+        object InvalidPostId : ViewPostDetailFragmentViewModelError()
+
+        fun getErrorReason(context: Context): String {
+            return when (this) {
+                InvalidPostId -> context.getString(R.string.invalid_post_id)
+                is Json -> context.getString(R.string.parse_json_response_error)
+                is Network -> e?.localizedMessage ?: context.getString(R.string.network_error)
+                Quarantined -> context.getString(R.string.quarantined_subreddit)
+                is RedditErrorWrapper -> e.reason ?: e.message ?: context.getString(R.string.unknown_error)
+                is ViewPostDetailFragmentViewModelError.Response -> message?.let {
+                    context.getString(R.string.response_error_with_code_and_message, code, it)
+                } ?: context.getString(R.string.response_error_with_code, code)
+            }
+        }
     }
 
     private val _uiState: MutableStateFlow<UiState> = MutableStateFlow(
@@ -113,11 +134,11 @@ class ViewPostDetailFragmentViewModelNew(
             isInitialLoading = false,
             isInitialLoadingFailed = false,
             fetchPostFailed = false,
-            isFetchingComments = false,
             isRefreshing = false,
             isLoadingMoreChildren = false,
             loadMoreChildrenSuccess = true,
-            shouldShowErrorView = false,
+            //shouldShowErrorView = false,
+            errorViewError = null,
             singleCommentId = singleCommentId
         )
     )
@@ -277,8 +298,9 @@ class ViewPostDetailFragmentViewModelNew(
         _uiState.value = _uiState.value.copy(
             isInitialLoading = true,
             isInitialLoadingFailed = false,
-            isFetchingComments = true,
-            shouldShowErrorView = false
+            fetchPostFailed = false,
+            //shouldShowErrorView = false
+            errorViewError = null
         )
 
         val derivedPostId = derivedPostId
@@ -286,7 +308,6 @@ class ViewPostDetailFragmentViewModelNew(
             _uiState.value = _uiState.value.copy(
                 isInitialLoading = false,
                 isInitialLoadingFailed = true,
-                isFetchingComments = false,
                 isRefreshing = if (changeRefreshState) false else _uiState.value.isRefreshing
             )
             return
@@ -326,7 +347,6 @@ class ViewPostDetailFragmentViewModelNew(
                         _uiState.value = _uiState.value.copy(
                             isInitialLoading = false,
                             isInitialLoadingFailed = false,
-                            isFetchingComments = false,
                             isRefreshing = if (changeRefreshState) false else _uiState.value.isRefreshing
                         )
                         _dataState.value = _dataState.value.copy(
@@ -338,7 +358,6 @@ class ViewPostDetailFragmentViewModelNew(
                         _uiState.value = _uiState.value.copy(
                             isInitialLoading = false,
                             isInitialLoadingFailed = true,
-                            isFetchingComments = false,
                             isRefreshing = if (changeRefreshState) false else _uiState.value.isRefreshing
                         )
                     }
@@ -347,7 +366,6 @@ class ViewPostDetailFragmentViewModelNew(
                 _uiState.value = _uiState.value.copy(
                     isInitialLoading = false,
                     isInitialLoadingFailed = true,
-                    isFetchingComments = false,
                     isRefreshing = if (changeRefreshState) false else _uiState.value.isRefreshing
                 )
             }
@@ -356,7 +374,6 @@ class ViewPostDetailFragmentViewModelNew(
             _uiState.value = _uiState.value.copy(
                 isInitialLoading = false,
                 isInitialLoadingFailed = true,
-                isFetchingComments = false,
                 isRefreshing = if (changeRefreshState) false else _uiState.value.isRefreshing
             )
         }
@@ -371,8 +388,9 @@ class ViewPostDetailFragmentViewModelNew(
                     _uiState.value = _uiState.value.copy(
                         isInitialLoading = true,
                         isInitialLoadingFailed = false,
-                        isFetchingComments = true,
-                        shouldShowErrorView = false
+                        fetchPostFailed = false,
+                        //shouldShowErrorView = false
+                        errorViewError = null
                     )
 
                     val response: Response<String>
@@ -439,8 +457,7 @@ class ViewPostDetailFragmentViewModelNew(
                                         )
                                         _uiState.value = _uiState.value.copy(
                                             isInitialLoading = false,
-                                            isInitialLoadingFailed = false,
-                                            isFetchingComments = false
+                                            isInitialLoadingFailed = false
                                         )
                                     }
                                     is AppResult.Error<*> -> {
@@ -453,23 +470,54 @@ class ViewPostDetailFragmentViewModelNew(
                             }
                         } ?: run {
                             _uiState.value = _uiState.value.copy(
-                                shouldShowErrorView = true
+                                isInitialLoading = false,
+                                isInitialLoadingFailed = true,
+                                //shouldShowErrorView = true
+                                errorViewError = ViewPostDetailFragmentViewModelError.Json(null)
                             )
                         }
                     } else {
+                        //{"reason": "banned", "message": "Not Found", "error": 404}
+                        try {
+                            response.errorBody().use { errorBody ->
+                                if (errorBody != null) {
+                                    val redditError = Gson().fromJson(
+                                        errorBody.string(),
+                                        RedditError::class.java
+                                    )
+                                    _uiState.value = _uiState.value.copy(
+                                        isInitialLoading = false,
+                                        isInitialLoadingFailed = true,
+                                        errorViewError = ViewPostDetailFragmentViewModelError.RedditErrorWrapper(redditError)
+                                    )
+                                    return@launch
+                                }
+                            }
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
                         _uiState.value = _uiState.value.copy(
-                            shouldShowErrorView = true
+                            isInitialLoading = false,
+                            isInitialLoadingFailed = true,
+                            //shouldShowErrorView = true
+                            errorViewError = ViewPostDetailFragmentViewModelError.Response(response.code(), response.message())
                         )
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
                     _uiState.value = _uiState.value.copy(
-                        shouldShowErrorView = true
+                        isInitialLoading = false,
+                        isInitialLoadingFailed = true,
+                        //shouldShowErrorView = true
+                        errorViewError = ViewPostDetailFragmentViewModelError.Network(e)
                     )
                 }
             } ?: run {
                 _uiState.value = _uiState.value.copy(
-                    shouldShowErrorView = true
+                    isInitialLoading = false,
+                    isInitialLoadingFailed = true,
+                    //shouldShowErrorView = true
+                    errorViewError = ViewPostDetailFragmentViewModelError.InvalidPostId
                 )
             }
         }
@@ -477,7 +525,7 @@ class ViewPostDetailFragmentViewModelNew(
 
     fun fetchMoreComments() {
         viewModelScope.launch {
-            if (_uiState.value.isFetchingComments || _uiState.value.isLoadingMoreChildren || !_uiState.value.loadMoreChildrenSuccess) {
+            if (_uiState.value.isInitialLoading || _uiState.value.isLoadingMoreChildren || !_uiState.value.loadMoreChildrenSuccess) {
                 return@launch
             }
 
@@ -766,7 +814,7 @@ class ViewPostDetailFragmentViewModelNew(
         return CommentFilter.mergeCommentFilter(commentFilterList)
     }
 
-    suspend fun fetchSubredditData(subredditName: String): AppResult<SubredditData?, SubredditError> {
+    suspend fun fetchSubredditData(subredditName: String): AppResult<SubredditData?, ViewPostDetailFragmentViewModelError> {
         try {
             val response: Response<String> = if (accountName == Account.ANONYMOUS_ACCOUNT) {
                 retrofit.create(RedditAPIKt::class.java).getSubredditData(subredditName)
@@ -782,19 +830,19 @@ class ViewPostDetailFragmentViewModelNew(
                         AppResult.Success(ParseSubredditData.parseSubredditDataSync(data, true))
                     } catch (e: JSONException) {
                         e.printStackTrace()
-                        AppResult.Error(SubredditError.Json(e))
+                        AppResult.Error(ViewPostDetailFragmentViewModelError.Json(e))
                     }
                 }
             } else {
                 return if (response.code() == 403) {
-                    AppResult.Error(SubredditError.Quarantined)
+                    AppResult.Error(ViewPostDetailFragmentViewModelError.Quarantined)
                 } else {
-                    AppResult.Error(SubredditError.Response(response.code(), response.errorBody()?.string()))
+                    AppResult.Error(ViewPostDetailFragmentViewModelError.Response(response.code(), response.errorBody()?.string()))
                 }
             }
         } catch (e: IOException) {
             e.printStackTrace()
-            return AppResult.Error(SubredditError.Network(e))
+            return AppResult.Error(ViewPostDetailFragmentViewModelError.Network(e))
         }
     }
 
@@ -803,7 +851,9 @@ class ViewPostDetailFragmentViewModelNew(
             if (!_uiState.value.isRefreshing) {
                 _uiState.value = _uiState.value.copy(
                     isRefreshing = true,
-                    shouldShowErrorView = false
+                    fetchPostFailed = false,
+                    //shouldShowErrorView = false
+                    errorViewError = null
                 )
 
                 if (!fetchPost && fetchComments) {
@@ -1073,12 +1123,12 @@ class ViewPostDetailFragmentViewModelNew(
         refresh(fetchPost = false, fetchComments = true)
     }
 
-    fun expandComment(position: Int) {
+    fun toggleExpandComment(position: Int): Boolean {
         _dataState.value.comments?.let { comments ->
             val comment = comments.getOrNull(position)
             comment?.let {
                 if (it.isExpanded) {
-                    collapseComment(position)
+                    return collapseComment(position)
                 } else {
                     val updatedComment = Comment(it)
                     updatedComment.setExpanded(true)
@@ -1088,14 +1138,20 @@ class ViewPostDetailFragmentViewModelNew(
 
                     val updatedComments = ArrayList(comments)
                     updatedComments[position] = updatedComment
-                    updatedComments.addAll(position + 1, newList)
+                    if (newList.isNotEmpty()) {
+                        updatedComments.addAll(position + 1, newList)
+                    }
 
                     _dataState.value = _dataState.value.copy(
                         comments = updatedComments
                     )
+
+                    return newList.isNotEmpty()
                 }
             }
         }
+
+        return false
     }
 
     private fun expandComment(
@@ -1111,7 +1167,7 @@ class ViewPostDetailFragmentViewModelNew(
         }
     }
 
-    fun collapseComment(position: Int) {
+    fun collapseComment(position: Int): Boolean {
         _dataState.value.comments?.let { comments ->
             val comment = comments.getOrNull(position)
             comment?.let {
@@ -1138,8 +1194,12 @@ class ViewPostDetailFragmentViewModelNew(
                 _dataState.value = _dataState.value.copy(
                     comments = updatedComments
                 )
+
+                return allChildrenSize > 0
             }
         }
+
+        return false
     }
 
     fun addComment(comment: Comment) {
@@ -1474,6 +1534,82 @@ class ViewPostDetailFragmentViewModelNew(
                         null, position
                     )
                 )
+            }
+        }
+    }
+
+    fun toggleSaveComment(comment: Comment, position: Int) {
+        viewModelScope.launch {
+            _dataState.value.comments?.let {
+                if (accessToken != null) {
+                    val updatedComments = ArrayList(it)
+
+                    var oldComment: Comment? = it.getOrNull(position)
+                    if (!oldComment?.id.equals(comment.id)) {
+                        val currentPosition = findCommentPosition(comment.fullName, position)
+                        if (currentPosition >= 0 && currentPosition < it.size) {
+                            oldComment = it[currentPosition]
+                        }
+                    }
+
+                    oldComment?.let {
+                        if (oldComment.isSaved) {
+                            if (unsaveThing(
+                                    oauthRetrofit, accessToken, oldComment.fullName
+                                )) {
+                                val updatedComment = Comment(oldComment)
+                                updatedComment.isSaved = !oldComment.isSaved
+
+                                updatedComments[position] = updatedComment
+
+                                _dataState.value = _dataState.value.copy(
+                                    comments = updatedComments
+                                )
+
+                                commentModerationEventLiveData.postValue(
+                                    CommentModerationEvent.Unsaved(
+                                        oldComment,
+                                        position
+                                    )
+                                )
+                            } else {
+                                commentModerationEventLiveData.postValue(
+                                    CommentModerationEvent.UnsaveFailed(
+                                        oldComment,
+                                        position
+                                    )
+                                )
+                            }
+                        } else {
+                            if (saveThing(
+                                    oauthRetrofit, accessToken, oldComment.fullName
+                                )) {
+                                val updatedComment = Comment(oldComment)
+                                updatedComment.isSaved = !oldComment.isSaved
+
+                                updatedComments[position] = updatedComment
+
+                                _dataState.value = _dataState.value.copy(
+                                    comments = updatedComments
+                                )
+
+                                commentModerationEventLiveData.postValue(
+                                    CommentModerationEvent.Saved(
+                                        oldComment,
+                                        position
+                                    )
+                                )
+                            } else {
+                                commentModerationEventLiveData.postValue(
+                                    CommentModerationEvent.SaveFailed(
+                                        oldComment,
+                                        position
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -2188,6 +2324,46 @@ class ViewPostDetailFragmentViewModelNew(
                         comment,
                         position
                     ) else CommentModerationEvent.LockFailed(comment, position)
+                )
+            }
+        }
+    }
+
+    fun toggleMod(comment: Comment, position: Int) {
+        viewModelScope.launch {
+            val params: MutableMap<String, String> = HashMap()
+            params[APIUtils.ID_KEY] = comment.fullName
+            params[APIUtils.HOW_KEY] = if (comment.isModerator) APIUtils.HOW_NO else APIUtils.HOW_YES
+            try {
+                val response = oauthRetrofit.create(RedditAPIKt::class.java)
+                    .toggleDistinguishedThing(APIUtils.getOAuthHeader(accessToken), params)
+
+                if (response.isSuccessful) {
+                    comment.setIsModerator(!comment.isModerator)
+
+                    updateModdedStatus(comment, position)
+
+                    commentModerationEventLiveData.postValue(
+                        if (comment.isModerator) CommentModerationEvent.DistinguishedAsMod(
+                            comment,
+                            position
+                        ) else CommentModerationEvent.UndistinguishedAsMod(comment, position)
+                    )
+                } else {
+                    commentModerationEventLiveData.postValue(
+                        if (comment.isModerator) CommentModerationEvent.UndistinguishAsModFailed(
+                            comment,
+                            position
+                        ) else CommentModerationEvent.DistinguishAsModFailed(comment, position)
+                    )
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                commentModerationEventLiveData.postValue(
+                    if (comment.isModerator) CommentModerationEvent.UndistinguishAsModFailed(
+                        comment,
+                        position
+                    ) else CommentModerationEvent.DistinguishAsModFailed(comment, position)
                 )
             }
         }

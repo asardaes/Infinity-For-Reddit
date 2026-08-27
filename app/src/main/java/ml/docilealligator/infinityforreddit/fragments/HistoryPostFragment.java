@@ -57,6 +57,7 @@ import ml.docilealligator.infinityforreddit.events.NeedForPostListFromPostFragme
 import ml.docilealligator.infinityforreddit.events.ProvidePostListToViewPostDetailActivityEvent;
 import ml.docilealligator.infinityforreddit.post.HistoryPostViewModel;
 import ml.docilealligator.infinityforreddit.post.Post;
+import ml.docilealligator.infinityforreddit.post.PostPagingSource;
 import ml.docilealligator.infinityforreddit.post.PostType;
 import ml.docilealligator.infinityforreddit.postfilter.PostFilter;
 import ml.docilealligator.infinityforreddit.postfilter.PostFilterUsage;
@@ -359,7 +360,18 @@ public class HistoryPostFragment extends PostFragmentBase implements FragmentCom
                 }
             } else if (refreshLoadState instanceof LoadState.Error) {
                 binding.fetchPostInfoLinearLayoutHistoryPostFragment.setOnClickListener(view -> refresh());
-                showErrorView(R.string.load_posts_error);
+                Throwable e = ((LoadState.Error) refreshLoadState).getError();
+                if (e instanceof PostPagingSource.PostPagingSourceError) {
+                    if (((PostPagingSource.PostPagingSourceError) e).code == 403 && Account.ANONYMOUS_ACCOUNT.equals(mActivity.accountName)) {
+                        showErrorView(R.string.load_posts_error_anonymous_403);
+                    }  else if (((PostPagingSource.PostPagingSourceError) e).message != null) {
+                        showErrorView(getString(R.string.load_posts_error_with_reason, ((PostPagingSource.PostPagingSourceError) e).message));
+                    } else {
+                        showErrorView(R.string.load_posts_error);
+                    }
+                } else {
+                    showErrorView(R.string.load_posts_error);
+                }
             }
             if (!(refreshLoadState instanceof LoadState.Loading) && appendLoadState instanceof LoadState.NotLoading) {
                 if (appendLoadState.getEndOfPaginationReached() && mAdapter.getItemCount() < 1) {
@@ -452,6 +464,16 @@ public class HistoryPostFragment extends PostFragmentBase implements FragmentCom
             binding.swipeRefreshLayoutHistoryPostFragment.setRefreshing(false);
             binding.fetchPostInfoLinearLayoutHistoryPostFragment.setVisibility(View.VISIBLE);
             binding.fetchPostInfoTextViewHistoryPostFragment.setText(stringResId);
+            mGlide.load(R.drawable.error_image).into(binding.fetchPostInfoImageViewHistoryPostFragment);
+        }
+    }
+
+    @Override
+    protected void showErrorView(String errorMessage) {
+        if (mActivity != null && isAdded()) {
+            binding.swipeRefreshLayoutHistoryPostFragment.setRefreshing(false);
+            binding.fetchPostInfoLinearLayoutHistoryPostFragment.setVisibility(View.VISIBLE);
+            binding.fetchPostInfoTextViewHistoryPostFragment.setText(errorMessage);
             mGlide.load(R.drawable.error_image).into(binding.fetchPostInfoImageViewHistoryPostFragment);
         }
     }

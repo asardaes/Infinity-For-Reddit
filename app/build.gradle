@@ -10,9 +10,9 @@ android {
     defaultConfig {
         applicationId "ml.docilealligator.infinityforreddit"
         minSdk 21
-        targetSdk 35
-        versionCode 223
-        versionName "8.3.0-beta2"
+        targetSdk 36
+        versionCode 228
+        versionName "8.3.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         javaCompileOptions {
             annotationProcessorOptions {
@@ -228,7 +228,13 @@ dependencies {
     implementation 'androidx.compose.material3:material3:1.5.0-alpha01'
     implementation 'androidx.compose.ui:ui-tooling-preview'
     debugImplementation 'androidx.compose.ui:ui-tooling'
-    //implementation 'androidx.compose.material3.adaptive:adaptive'
+    implementation'androidx.compose.material3.adaptive:adaptive:1.1.0'
+    configurations.configureEach {
+        resolutionStrategy.force(
+                "androidx.compose.material3.adaptive:adaptive:1.1.0",
+                "androidx.compose.material3.adaptive:adaptive-android:1.1.0"
+        )
+    }
     implementation 'androidx.activity:activity-compose:1.10.1'
     implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.9.4'
     implementation 'androidx.compose.runtime:runtime-livedata'

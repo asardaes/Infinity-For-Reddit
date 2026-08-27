@@ -86,6 +86,7 @@ import ml.docilealligator.infinityforreddit.adapters.PostDetailRecyclerViewAdapt
 import ml.docilealligator.infinityforreddit.apis.StreamableAPI;
 import ml.docilealligator.infinityforreddit.bottomsheetfragments.FlairBottomSheetFragment;
 import ml.docilealligator.infinityforreddit.bottomsheetfragments.PostCommentSortTypeBottomSheetFragment;
+import ml.docilealligator.infinityforreddit.bottomsheetfragments.PostOptionsBottomSheetFragment;
 import ml.docilealligator.infinityforreddit.comment.Comment;
 import ml.docilealligator.infinityforreddit.customtheme.CustomThemeWrapper;
 import ml.docilealligator.infinityforreddit.customviews.AdjustableTouchSlopItemTouchHelper;
@@ -203,6 +204,8 @@ public class ViewPostDetailFragmentNew extends Fragment implements FragmentCommu
     private int commentScrollPosition = -1;
     private FragmentViewPostDetailBinding binding;
     private RecyclerView mCommentsRecyclerView;
+    private View.OnLayoutChangeListener onLayoutChangeListener;
+    private int recyclerViewWidth;
     public ViewPostDetailFragmentViewModelNew viewPostDetailFragmentViewModel;
     public ViewPostDetailActivityViewModel viewPostDetailActivityViewModel;
 
@@ -501,8 +504,8 @@ public class ViewPostDetailFragmentNew extends Fragment implements FragmentCommu
                 mSharedPreferences, mNsfwAndSpoilerSharedPreferences,
                 new CommentsRecyclerViewAdapterNew.CommentRecyclerViewAdapterCallback() {
                     @Override
-                    public void expandComment(int position) {
-                        viewPostDetailFragmentViewModel.expandComment(position);
+                    public boolean toggleExpandComment(int position) {
+                        return viewPostDetailFragmentViewModel.toggleExpandComment(position);
                     }
 
                     @Override
@@ -532,24 +535,26 @@ public class ViewPostDetailFragmentNew extends Fragment implements FragmentCommu
         viewPostDetailFragmentViewModel.getUiState().observe(getViewLifecycleOwner(), uiState -> {
             RecyclerView recyclerView = mCommentsRecyclerView != null ? mCommentsRecyclerView : binding.postDetailRecyclerViewViewPostDetailFragment;
             mCommentsStatusAdapter.setSingleCommentThreadMode(uiState.getSingleCommentId() != null && !uiState.getSingleCommentId().isEmpty());
-            mCommentsStatusAdapter.setInitiallyLoading(uiState.isInitialLoading());
-            mCommentsStatusAdapter.setInitiallyLoadingFailed(uiState.isInitialLoadingFailed());
+            mCommentsStatusAdapter.setInitialLoading(uiState.isInitialLoading());
+            mCommentsStatusAdapter.setInitialLoadingFailed(uiState.isInitialLoadingFailed());
             recyclerView.post(() -> mCommentsStatusAdapter.notifyDataSetChanged());
 
             mCommentsFooterAdapter.setLoadingMoreChildren(uiState.isLoadingMoreChildren());
             mCommentsFooterAdapter.setLoadMoreChildrenSuccess(uiState.getLoadMoreChildrenSuccess());
             recyclerView.post(() -> mCommentsFooterAdapter.notifyDataSetChanged());
 
+            binding.swipeRefreshLayoutViewPostDetailFragment.setRefreshing((mPost == null && uiState.isInitialLoading()) || uiState.isRefreshing());
+
             if (uiState.isInitialLoading()) {
                 binding.fetchPostInfoLinearLayoutViewPostDetailFragment.setVisibility(View.GONE);
-                binding.swipeRefreshLayoutViewPostDetailFragment.setRefreshing(true);
                 mGlide.clear(binding.fetchPostInfoImageViewViewPostDetailFragment);
-            } else {
-                binding.swipeRefreshLayoutViewPostDetailFragment.setRefreshing(false);
 
-                if (uiState.getShouldShowErrorView()) {
-                    showErrorView(viewPostDetailFragmentViewModel.getDerivedPostId());
-                } else {
+                mCommentsAdapter.initiallyLoading();
+            } else {
+                if (uiState.getErrorViewError() != null) {
+                    ViewPostDetailFragmentViewModelNew.ViewPostDetailFragmentViewModelError error = uiState.getErrorViewError();
+                    showErrorView(error);
+                } else if (!uiState.isInitialLoadingFailed()) {
                     if (!renderContent()) {
                         return;
                     }
@@ -562,17 +567,9 @@ public class ViewPostDetailFragmentNew extends Fragment implements FragmentCommu
                 showMessage(R.string.refresh_post_failed);
             }
 
-            if (uiState.isFetchingComments()) {
-                if (mCommentsAdapter != null) {
-                    mCommentsAdapter.initiallyLoading();
-                }
-            }
-
             if (uiState.getSortType() != null) {
                 SortType.Type sortType = uiState.getSortType();
                 mActivity.setTitle(sortType.fullName);
-                binding.fetchPostInfoLinearLayoutViewPostDetailFragment.setVisibility(View.GONE);
-                mGlide.clear(binding.fetchPostInfoImageViewViewPostDetailFragment);
 
                 if (mSharedPreferences.getBoolean(SharedPreferencesUtils.SAVE_SORT_TYPE, true)) {
                     mSortTypeSharedPreferences.edit().putString(SharedPreferencesUtils.SORT_TYPE_POST_COMMENT, sortType.name()).apply();
@@ -591,7 +588,6 @@ public class ViewPostDetailFragmentNew extends Fragment implements FragmentCommu
                 }
                 EventBus.getDefault().post(new PostUpdateEventToPostList(dataState.getPost(), postListPosition));
                 setupMenu();
-                binding.swipeRefreshLayoutViewPostDetailFragment.setRefreshing(false);
             }
 
             comments = dataState.getComments();
@@ -664,6 +660,8 @@ public class ViewPostDetailFragmentNew extends Fragment implements FragmentCommu
             return new PlaybackInfo(INDEX_UNSET, TIME_UNSET, volumeInfo);
         });
 
+        binding.fetchPostInfoLinearLayoutViewPostDetailFragment.setOnClickListener(view -> viewPostDetailFragmentViewModel.fetchPostAndCommentsById(postId));
+
         viewPostDetailFragmentViewModel.getPostModerationEventLiveData().observe(getViewLifecycleOwner(), moderationEvent -> {
             showMessage(moderationEvent.getToastMessageResId());
 
@@ -688,6 +686,34 @@ public class ViewPostDetailFragmentNew extends Fragment implements FragmentCommu
             return false;
         }
         setupMenu();
+        if (onLayoutChangeListener != null) {
+            if (mCommentsRecyclerView != null) {
+                mCommentsRecyclerView.removeOnLayoutChangeListener(onLayoutChangeListener);
+            } else {
+                binding.postDetailRecyclerViewViewPostDetailFragment.removeOnLayoutChangeListener(onLayoutChangeListener);
+            }
+        }
+
+        onLayoutChangeListener = (v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
+            int width = right - left;
+            if (recyclerViewWidth == width) {
+                return;
+            }
+            recyclerViewWidth = width;
+            v.post(() -> {
+                int widthInDp = Utils.convertPxToDp(width, mActivity);
+                if (mPostAdapter != null) {
+                    mPostAdapter.provideItemWidth(widthInDp);
+                }
+                if (mCommentsAdapter != null) {
+                    mCommentsAdapter.provideItemWidth(widthInDp);
+                }
+                refreshAdapter(binding.postDetailRecyclerViewViewPostDetailFragment);
+                if (mCommentsRecyclerView != null) {
+                    refreshAdapter(mCommentsRecyclerView);
+                }
+            });
+        };
 
         if (mCommentsRecyclerView != null) {
             if (binding.postDetailRecyclerViewViewPostDetailFragment.getAdapter() == null) {
@@ -696,10 +722,12 @@ public class ViewPostDetailFragmentNew extends Fragment implements FragmentCommu
             if (mCommentsRecyclerView.getAdapter() == null) {
                 mCommentsRecyclerView.setAdapter(mConcatAdapter);
             }
+            mCommentsRecyclerView.addOnLayoutChangeListener(onLayoutChangeListener);
         } else {
             if (binding.postDetailRecyclerViewViewPostDetailFragment.getAdapter() == null) {
                 binding.postDetailRecyclerViewViewPostDetailFragment.setAdapter(mConcatAdapter);
             }
+            binding.postDetailRecyclerViewViewPostDetailFragment.addOnLayoutChangeListener(onLayoutChangeListener);
         }
 
         return true;
@@ -747,6 +775,7 @@ public class ViewPostDetailFragmentNew extends Fragment implements FragmentCommu
             mMenu.findItem(R.id.action_report_view_post_detail_fragment).setVisible(true);
             mMenu.findItem(R.id.action_crosspost_view_post_detail_fragment).setVisible(true);
             mMenu.findItem(R.id.action_add_to_post_filter_view_post_detail_fragment).setVisible(true);
+            mMenu.findItem(R.id.action_more_post_options_view_post_detail_fragment).setVisible(true);
 
             if (mPost.isHidden()) {
                 Utils.setTitleWithCustomFontToMenuItem(mActivity.typeface, hideItem, mActivity.getString(R.string.action_unhide_post));
@@ -839,10 +868,8 @@ public class ViewPostDetailFragmentNew extends Fragment implements FragmentCommu
         }
     }
 
-    public void saveComment(int position, boolean isSaved) {
-        if (mCommentsAdapter != null) {
-            mCommentsAdapter.setSaveComment(position, isSaved);
-        }
+    public void toggleSaveComment(@NonNull Comment comment, int position) {
+        viewPostDetailFragmentViewModel.toggleSaveComment(comment, position);
     }
 
     public void searchComment(String query, boolean searchNextComment) {
@@ -990,7 +1017,7 @@ public class ViewPostDetailFragmentNew extends Fragment implements FragmentCommu
             FlairBottomSheetFragment flairBottomSheetFragment = new FlairBottomSheetFragment();
             Bundle bundle = new Bundle();
             bundle.putString(FlairBottomSheetFragment.EXTRA_SUBREDDIT_NAME, mPost.getSubredditName());
-            bundle.putLong(FlairBottomSheetFragment.EXTRA_VIEW_POST_DETAIL_FRAGMENT_ID, viewPostDetailFragmentId);
+            bundle.putLong(FlairBottomSheetFragment.EXTRA_CALLING_FRAGMENT_ID, viewPostDetailFragmentId);
             flairBottomSheetFragment.setArguments(bundle);
             flairBottomSheetFragment.show(mActivity.getSupportFragmentManager(), flairBottomSheetFragment.getTag());
             return true;
@@ -1014,6 +1041,12 @@ public class ViewPostDetailFragmentNew extends Fragment implements FragmentCommu
             intent.putExtra(PostFilterPreferenceActivity.EXTRA_POST, mPost);
             startActivity(intent);
             return true;
+        } else if (itemId == R.id.action_more_post_options_view_post_detail_fragment) {
+            if (mPost != null) {
+                PostOptionsBottomSheetFragment postOptionsBottomSheetFragment =
+                        PostOptionsBottomSheetFragment.newInstance(mPost, postListPosition, false);
+                postOptionsBottomSheetFragment.show(getChildFragmentManager(), postOptionsBottomSheetFragment.getTag());
+            }
         }
         return false;
     }
@@ -1121,6 +1154,14 @@ public class ViewPostDetailFragmentNew extends Fragment implements FragmentCommu
         Bridge.clear(this);
         EventBus.getDefault().unregister(this);
         binding.postDetailRecyclerViewViewPostDetailFragment.addOnWindowFocusChangedListener(null);
+        if (onLayoutChangeListener != null) {
+            if (mCommentsRecyclerView != null) {
+                mCommentsRecyclerView.removeOnLayoutChangeListener(onLayoutChangeListener);
+            } else {
+                binding.postDetailRecyclerViewViewPostDetailFragment.removeOnLayoutChangeListener(onLayoutChangeListener);
+            }
+            onLayoutChangeListener = null;
+        }
         super.onDestroyView();
     }
 
@@ -1139,11 +1180,14 @@ public class ViewPostDetailFragmentNew extends Fragment implements FragmentCommu
         return true;
     }
 
-    private void showErrorView(String postId) {
-        binding.swipeRefreshLayoutViewPostDetailFragment.setRefreshing(false);
+    private void showErrorView(ViewPostDetailFragmentViewModelNew.ViewPostDetailFragmentViewModelError error) {
+        String errorReason = error.getErrorReason(mActivity);
         binding.fetchPostInfoLinearLayoutViewPostDetailFragment.setVisibility(View.VISIBLE);
-        binding.fetchPostInfoLinearLayoutViewPostDetailFragment.setOnClickListener(view -> viewPostDetailFragmentViewModel.fetchPostAndCommentsById(postId));
-        binding.fetchPostInfoTextViewViewPostDetailFragment.setText(R.string.load_post_error);
+        if (!errorReason.isBlank()) {
+            binding.fetchPostInfoTextViewViewPostDetailFragment.setText(getString(R.string.load_post_error_with_reason, errorReason));
+        } else {
+            binding.fetchPostInfoTextViewViewPostDetailFragment.setText(R.string.load_post_error);
+        }
         mGlide.load(R.drawable.error_image).into(binding.fetchPostInfoImageViewViewPostDetailFragment);
     }
 
@@ -1344,19 +1388,17 @@ public class ViewPostDetailFragmentNew extends Fragment implements FragmentCommu
         String dataSavingMode = mSharedPreferences.getString(SharedPreferencesUtils.DATA_SAVING_MODE, SharedPreferencesUtils.DATA_SAVING_MODE_OFF);
         boolean stateChanged = false;
         if (autoplay.equals(SharedPreferencesUtils.VIDEO_AUTOPLAY_VALUE_ON_WIFI)) {
-            if (mPostAdapter != null) {
-                mPostAdapter.setAutoplay(changeNetworkStatusEvent.connectedNetwork == Utils.NETWORK_TYPE_WIFI);
+            if (mPostAdapter != null && mPostAdapter.setAutoplay(changeNetworkStatusEvent.connectedNetwork == Utils.NETWORK_TYPE_WIFI)) {
+                stateChanged = true;
             }
-            stateChanged = true;
         }
         if (dataSavingMode.equals(SharedPreferencesUtils.DATA_SAVING_MODE_ONLY_ON_CELLULAR_DATA)) {
-            if (mPostAdapter != null) {
-                mPostAdapter.setDataSavingMode(changeNetworkStatusEvent.connectedNetwork == Utils.NETWORK_TYPE_CELLULAR);
+            if (mPostAdapter != null && mPostAdapter.setDataSavingMode(changeNetworkStatusEvent.connectedNetwork == Utils.NETWORK_TYPE_CELLULAR)) {
+                stateChanged = true;
             }
-            if (mCommentsAdapter != null) {
-                mCommentsAdapter.setDataSavingMode(changeNetworkStatusEvent.connectedNetwork == Utils.NETWORK_TYPE_CELLULAR);
+            if (mCommentsAdapter != null && mCommentsAdapter.setDataSavingMode(changeNetworkStatusEvent.connectedNetwork == Utils.NETWORK_TYPE_CELLULAR)) {
+                stateChanged = true;
             }
-            stateChanged = true;
         }
 
         if (stateChanged) {
@@ -1438,6 +1480,17 @@ public class ViewPostDetailFragmentNew extends Fragment implements FragmentCommu
     }
 
     @Override
+    public void changeFlair(@NonNull Post post, int position) {
+        FlairBottomSheetFragment flairBottomSheetFragment = new FlairBottomSheetFragment();
+        Bundle bundle = new Bundle();
+        bundle.putString(FlairBottomSheetFragment.EXTRA_SUBREDDIT_NAME, mPost.getSubredditName());
+        bundle.putLong(FlairBottomSheetFragment.EXTRA_CALLING_FRAGMENT_ID, viewPostDetailFragmentId);
+        bundle.putBoolean(FlairBottomSheetFragment.EXTRA_SHOW_REMOVE_FLAIR_OPTION, true);
+        flairBottomSheetFragment.setArguments(bundle);
+        flairBottomSheetFragment.show(mActivity.getSupportFragmentManager(), flairBottomSheetFragment.getTag());
+    }
+
+    @Override
     public void toggleMod(@NonNull Post post, int position) {
         viewPostDetailFragmentViewModel.toggleMod(post, position);
     }
@@ -1460,5 +1513,10 @@ public class ViewPostDetailFragmentNew extends Fragment implements FragmentCommu
     @Override
     public void toggleLock(@NonNull Comment comment, int position) {
         viewPostDetailFragmentViewModel.toggleLock(comment, position);
+    }
+
+    @Override
+    public void toggleMod(@NonNull Comment comment, int position) {
+        viewPostDetailFragmentViewModel.toggleMod(comment, position);
     }
 }

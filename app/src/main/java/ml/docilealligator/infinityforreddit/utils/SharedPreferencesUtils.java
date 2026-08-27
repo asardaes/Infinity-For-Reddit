@@ -211,7 +211,6 @@ public class SharedPreferencesUtils {
     public static final String PINCH_TO_ZOOM_VIDEO = "pinch_to_zoom_video";
     public static final String FIXED_HEIGHT_PREVIEW_IN_CARD = "fixed_height_preview_in_card";
     public static final String HIDE_TEXT_POST_CONTENT = "hide_text_post_content";
-    public static final String SHOW_FEWER_TOOLBAR_OPTIONS_THRESHOLD = "show_fewer_toolbar_options_threshold";
     public static final String SHOW_AUTHOR_AVATAR = "show_author_avatar";
     public static final String ALWAYS_SHOW_CHILD_COMMENT_COUNT = "always_show_child_comment_count";
     public static final String HIDE_UPVOTE_RATIO = "hide_upvote_ratio";
@@ -239,6 +238,9 @@ public class SharedPreferencesUtils {
     public static final String NAVIGATION_DRAWER_SWIPE_AREA = "navigation_drawer_swipe_area";
     public static final String COMMENT_THREAD_CONTINUITY_CAPACITY = "comment_thread_continuity_capacity";
     public static final String CURRENT_VERSION = "current_version";
+    public static final String ONBOARDING_FINISHED = "onboarding_finished";
+    public static final String SHOW_GALLERY_MEDIA_AS_GRID = "show_gallery_media_as_grid";
+    public static final String SHOW_POST_AND_COMMENT_TOOLBAR_ITEMS_BASED_ON_SPACE = "show_post_and_comment_toolbar_items_based_on_space";
 
     public static String getPostDetailFabPortraitX(@Nullable Display display) {
         if (display == null) {
@@ -482,6 +484,7 @@ public class SharedPreferencesUtils {
     public static final String HIDE_THE_NUMBER_OF_AWARDS_LEGACY = "hide_the_number_of_awards";
     public static final String HIDE_COMMENT_AWARDS_LEGACY = "hide_comment_awards";
     public static final String IMMERSIVE_INTERFACE_IGNORE_NAV_BAR_KEY_LEGACY = "immersive_interface_ignore_nav_bar";
+    public static final String SHOW_FEWER_TOOLBAR_OPTIONS_THRESHOLD = "show_fewer_toolbar_options_threshold";
 
     //Current account
     public static final String APPLICATION_ONLY_ACCESS_TOKEN_LEGACY = "app_only_access_token";

@@ -108,6 +108,7 @@
     <string name="action_next_parent_comment">Next Top-Level Comment</string>
     <string name="action_previous_parent_comment">Previous Top-Level Comment</string>
     <string name="action_back_content_description">Back</string>
+    <string name="action_more_post_options">More Post Options</string>
 
     <string name="parse_json_response_error">Error occurred when parsing the JSON response</string>
     <string name="retrieve_token_error">Error Retrieving the token</string>
@@ -118,8 +119,18 @@
 
     <string name="error_loading_image_tap_to_retry">Error loading the image. Tap to retry.</string>
     <string name="load_posts_error">Error loading posts.\nTap to retry.</string>
+    <string name="load_posts_error_anonymous_403">Due to platform limitations, content cannot be loaded right now.
+        \n\nYou can try again shortly or subscribe for a more reliable experience.</string>
+    <string name="load_posts_error_with_reason">Error loading posts. Reason: %1$s.\nTap to retry.</string>
     <string name="load_more_posts_error">Error loading posts.</string>
     <string name="load_post_error">Error loading this post.\nTap to retry.</string>
+    <string name="load_post_error_with_reason">Error loading this post. Reason: %1$s.\nTap to retry.</string>
+    <string name="invalid_post_id">Invalid Post Id</string>
+    <string name="network_error">Network Error</string>
+    <string name="response_error_with_code">Response Error: %1$d</string>
+    <string name="response_error_with_code_and_message">Response Error: %1$d. Message: %2$s</string>
+    <string name="quarantined_subreddit">Quarantined Subreddit</string>
+    <string name="unknown_error">Unknown Error</string>
     <string name="search_subreddits_error">Error searching subreddits.\nTap to retry.</string>
     <string name="search_users_error">Error searching users.\nTap to retry.</string>
     <string name="no_posts">No posts found</string>
@@ -237,6 +248,7 @@
     <string name="subreddits">Subreddits</string>
     <string name="users">Users</string>
     <string name="multi_reddits">MultiReddits</string>
+    <string name="post">Post</string>
     <string name="posts">Posts</string>
     <string name="comments">Comments</string>
     <string name="about">About</string>
@@ -365,6 +377,7 @@
     <string name="update_flair_failed">Update flair failed</string>
 
     <string name="edit_flair">Edit Flair</string>
+    <string name="remove_flair">Remove Flair</string>
     <string name="only_allow_64_chars">Only allow less than 64 characters</string>
 
     <string name="view_all_comments">Click here to browse all comments</string>
@@ -687,6 +700,9 @@
     <string name="default_swipe_area">Default</string>
     <string name="larger_swipe_area">Large</string>
     <string name="very_larger_swipe_area">Very Large</string>
+    <string name="settings_show_gallery_media_as_grid">Show Gallery Media as a Grid When Available</string>
+    <string name="settings_show_post_and_comment_toolbar_items_based_on_available_space_title">Show Toolbar Items Based on Available Space</string>
+    <string name="settings_show_post_and_comment_toolbar_items_based_on_available_space_summary">Automatically show or hide toolbar items as available space changes.</string>
 
     <string name="no_link_available">Cannot get the link</string>
 
@@ -741,6 +757,19 @@
     <string name="elapsed_time_months_ago">%1$d Months</string>
     <string name="elapsed_time_a_year_ago">1 Year</string>
     <string name="elapsed_time_years_ago">%1$d Years</string>
+
+    <string name="remaining_time_passed">In the past</string>
+    <string name="remaining_time_less_than_1_minute">Less than 1 minute</string>
+    <string name="remaining_time_1_minute">1 Minute</string>
+    <string name="remaining_time_in_minutes">%1$d Minutes</string>
+    <string name="remaining_time_1_hour">1 Hour</string>
+    <string name="remaining_time_in_hours">%1$d Hours</string>
+    <string name="remaining_time_1_day">1 Day</string>
+    <string name="remaining_time_in_days">%1$d Days</string>
+    <string name="remaining_time_1_month">1 Month</string>
+    <string name="remaining_time_in_months">%1$d Months</string>
+    <string name="remaining_time_1_year">1 Year</string>
+    <string name="remaining_time_in_years">%1$d Years</string>
 
     <string name="error_getting_multi_reddit_data">Error getting multireddit data</string>
     <string name="error_loading_multi_reddit_list">Cannot sync multireddits</string>
@@ -1494,13 +1523,33 @@
     <string name="restore_subscription_purchase_details">Already paid for the subscription?</string>
     <string name="restore_subscription_purchase">Restore subscription purchase</string>
 
-    <string name="important_info_title">Please re-login your account</string>
-    <string name="important_info">Infinity for Reddit with subscription uses a new API key from Reddit and you have to re-login to continue using the app.\n\nJust
-        open the navigation drawer and click your account header and select \"Add an account\" to login to Reddit using the same account again.
-        Otherwise, Infinity may not load posts at all. Sorry for the inconvenience.</string>
     <string name="i_understand">I understand</string>
-    <string name="important_info_post_comments_rework_title">Important Beta Information</string>
-    <string name="important_info_post_comments_rework_description">You are currently using the beta version of the new release.\n\nThis beta includes major under-the-hood changes to the post comments section as part of a large code cleanup and rewrite. The functionality should remain mostly the same, but because many internal systems have changed, bugs and unexpected issues are to be expected during this stage.\n\nThis release is focused primarily on stabilizing the new foundation before additional features are gradually introduced in future beta updates.\n\nThank you for testing the beta and for your patience.</string>
+    <string name="whats_new_in">What’s New in %1$s?</string>
+    <string name="whats_new_changelogs">New Features:
+        \nReminders: Set a reminder for a post or comment and get notified to check back later.
+        \nOnboarding screen: An introduction for new users.
+        \nSupport videos in posts and comments.
+        \nNew moderator option in post details: "Edit Flair"
+        \nNew moderator option in comments: "(Un)distinguish as moderator"
+        \nBackup and restore comment drafts, read posts, reminders.
+        \nShow specific reasons when posts fail to load.
+        \nYou can now use Firefox to login.
+
+        \n\nNew Options:
+        \nSettings->Interface->Post->Show Gallery Media as a Grid When Available
+        \nSettings->Interface->Post Details->Show Gallery Media as a Grid When Available
+        \nSettings->Interface->Show Toolbar Items BAsed on Available Space
+
+        \n\nWhat\’s Removed:
+        \nRemove "Show Fewer Toolbar Options Starting From" since comment toolbar options are now automatically adjusted when space is limited.
+        \nRemove "Switch to Landscape Orientation in Video Player Automatically" for tablets due to new Android platform limitations.
+        \nLink posts now include the shared page title and URL when shared from other apps.
+
+        \n\nWhat\'s Fixed:
+        \nFixed title suggestions not working when submitting link posts.
+        \nFixed imgur handling.
+        \nMany under-the-hood bug fixes and improvements.
+    </string>
     <string name="important_info_post_comments_rework_join_subreddit">Click here to join r/Infinity_For_Reddit</string>
 
     <string name="add_to_comment_filter">Add to Comment Filter</string>
@@ -1636,4 +1685,58 @@
     <string name="comment_spam_status">This comment is removed as spam</string>
 
     <string name="copying_multi_reddit">Copying</string>
+
+    <string name="set_reminder">Set Reminder</string>
+    <string name="choose_a_predefined_reminder_time">Choose a predefined reminder time:</string>
+    <string name="in_6_hours">In 6 hours</string>
+    <string name="in_1_day">In 1 day</string>
+    <string name="in_2_days">In 2 days</string>
+    <string name="in_3_days">In 3 days</string>
+    <string name="in_1_week">In 1 week</string>
+    <string name="in_2_weeks">In 2 weeks</string>
+    <string name="or_set_a_custom_reminder_time">Or, set a custom reminder time:</string>
+    <string name="set_date">Set Date</string>
+    <string name="set_time">Set Time</string>
+    <string name="you_will_receive_reminder_notification">You\'ll receive a reminder notification on the date and time you set:</string>
+    <string name="please_set_reminder_time">Please set a reminder time</string>
+    <string name="reminder_time_must_be_in_future">The reminder time must be in the future.</string>
+    <string name="invalid_reminder_post_id">Invalid post id</string>
+    <string name="note">Note:</string>
+    <string name="reminder_reliability_notice_app_update_force_stop_title">"App Updates \u0026 Force Stops: "</string>
+    <string name="reminder_reliability_notice_app_update_force_stop_description">If you force-close the app or it updates, reminders will pause. Simply open the app once to reactivate them.</string>
+    <string name="reminder_reliability_notice_battery_title">"Battery \u0026 Timing: "</string>
+    <string name="reminder_reliability_notice_battery_description">To save battery, your phone may slightly delay reminders rather than triggering them at the exact time.</string>
+    <string name="reminder_reliability_notice_device_settings_title">"Device Settings: "</string>
+    <string name="reminder_reliability_notice_device_settings_description">Some phones (like Xiaomi, Oppo, or Vivo) require you to turn on "Auto-start" or "Background App Launch" in your phone\'s system settings. Otherwise, reminders will stop working if your phone restarts.</string>
+    <string name="reminder_set">Reminder set</string>
+    <string name="reminder">Reminder</string>
+
+    <string name="onboarding_welcome_to">Welcome to</string>
+    <string name="onboarding_infinity_for_reddit">Infinity for Reddit</string>
+    <string name="content_description_infinity_icon">Icon of Infinity for Reddit</string>
+    <string name="content_description_background">Background</string>
+    <string name="infinitely_better_experience">The infinitely better Reddit experience</string>
+    <string name="take_a_quick_tour">Take a quick tour</string>
+    <string name="next">Next</string>
+    <string name="get_started">Get started</string>
+    <string name="by_continuing_1">"By continuing, you agree to the "</string>
+    <string name="privacy_policy">Privacy Policy</string>
+    <string name="by_continuing_2">" and "</string>
+    <string name="reddit_user_agreement">Reddit User Agreement</string>
+    <string name="by_continuing_3">.\nInfinity is an independent client for Reddit. Not affiliated or endorsed by Reddit.</string>
+    <string name="filter_what_you_see">Filter What You See</string>
+    <string name="filter_what_you_see_description">Advanced rules for a clean feed</string>
+    <string name="content_description_filter_what_you_see">Screenshot of filter what you see</string>
+    <string name="post_like_a_pro">Post Like a Pro</string>
+    <string name="post_like_a_pro_description">Every post type supported\nPlus GIFs in comments</string>
+    <string name="content_description_post_like_a_pro">Screenshot of post like a pro</string>
+    <string name="make_it_yours">Make it Yours</string>
+    <string name="make_it_yours_description">Customize every color, button, and gesture</string>
+    <string name="content_description_make_it_yours">Screenshot of make it yours</string>
+    <string name="private_browsing">Private Browsing</string>
+    <string name="private_browsing_description">Subscribe, save, vote, and revisit, before signing in</string>
+    <string name="content_description_private_browsing">Screenshot of private browsing</string>
+    <string name="more_features">And There\'s More!</string>
+    <string name="more_features_description">Discover even more tools and features waiting for you inside the app</string>
+    <string name="content_description_more_features">Screenshot of more features</string>
 </resources>

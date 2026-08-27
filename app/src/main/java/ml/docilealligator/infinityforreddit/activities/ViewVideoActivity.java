@@ -148,6 +148,7 @@ public class ViewVideoActivity extends AppCompatActivity implements CustomFontRe
     @UnstableApi
     private DefaultTrackSelector trackSelector;
     private DataSource.Factory dataSourceFactory;
+    private Player.Listener playerListener;
 
     private Integer originalOrientation;
     private boolean useBottomToolbar;
@@ -370,7 +371,8 @@ public class ViewVideoActivity extends AppCompatActivity implements CustomFontRe
 
 
         if (savedInstanceState == null) {
-            if (mSharedPreferences.getBoolean(SharedPreferencesUtils.VIDEO_PLAYER_AUTOMATIC_LANDSCAPE_ORIENTATION, false)) {
+            if (!getResources().getBoolean(R.bool.isTablet)
+                    && mSharedPreferences.getBoolean(SharedPreferencesUtils.VIDEO_PLAYER_AUTOMATIC_LANDSCAPE_ORIENTATION, false)) {
                 originalOrientation = resources.getConfiguration().orientation;
                 try {
                     setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
@@ -441,8 +443,12 @@ public class ViewVideoActivity extends AppCompatActivity implements CustomFontRe
             ZoomSurfaceView zoomSurfaceView = findViewById(R.id.zoom_surface_view_view_video_activity);
             player.addListener(new Player.Listener() {
                 @Override
-                public void onVideoSizeChanged(VideoSize videoSize) {
-                    zoomSurfaceView.setContentSize(videoSize.width, videoSize.height);
+                public void onVideoSizeChanged(@NonNull VideoSize videoSize) {
+                    try {
+                        zoomSurfaceView.setContentSize(videoSize.width, videoSize.height);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             });
             zoomSurfaceView.addCallback(new ZoomSurfaceView.Callback() {
@@ -519,7 +525,7 @@ public class ViewVideoActivity extends AppCompatActivity implements CustomFontRe
             Util.handlePlayPauseButtonAction(player);
         });
 
-        player.addListener(new Player.Listener() {
+        playerListener = new Player.Listener() {
             @Override
             public void onEvents(@NonNull Player player, @NonNull Player.Events events) {
                 if (events.containsAny(
@@ -652,7 +658,17 @@ public class ViewVideoActivity extends AppCompatActivity implements CustomFontRe
             public void onPlayerError(@NonNull PlaybackException error) {
                 viewVideoViewModel.loadFallbackVideo(player.getCurrentMediaItem());
             }
-        });
+
+            @Override
+            public void onIsPlayingChanged(boolean isPlaying) {
+                if (isPlaying) {
+                    getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                } else {
+                    getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                }
+            }
+        };
+        player.addListener(playerListener);
 
         // Produces DataSource instances through which media data is loaded.
         dataSourceFactory = new CacheDataSource.Factory().setCache(mSimpleCache)
@@ -774,6 +790,9 @@ public class ViewVideoActivity extends AppCompatActivity implements CustomFontRe
     protected void onDestroy() {
         EventBus.getDefault().unregister(this);
         super.onDestroy();
+        if (playerListener != null) {
+            player.removeListener(playerListener);
+        }
         player.seekToDefaultPosition();
         player.stop();
         player.release();

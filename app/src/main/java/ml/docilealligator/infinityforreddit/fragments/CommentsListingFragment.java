@@ -55,6 +55,7 @@ import ml.docilealligator.infinityforreddit.customviews.LinearLayoutManagerBugFi
 import ml.docilealligator.infinityforreddit.databinding.FragmentCommentsListingBinding;
 import ml.docilealligator.infinityforreddit.events.ChangeNetworkStatusEvent;
 import ml.docilealligator.infinityforreddit.thing.ReplyNotificationsToggle;
+import ml.docilealligator.infinityforreddit.thing.SaveThing;
 import ml.docilealligator.infinityforreddit.thing.SortType;
 import ml.docilealligator.infinityforreddit.utils.SharedPreferencesUtils;
 import ml.docilealligator.infinityforreddit.utils.Utils;
@@ -109,6 +110,8 @@ public class CommentsListingFragment extends Fragment implements FragmentCommuni
     private AdjustableTouchSlopItemTouchHelper touchHelper;
     private boolean shouldSwipeBack;
     private FragmentCommentsListingBinding binding;
+    private View.OnLayoutChangeListener onLayoutChangeListener;
+    private int recyclerViewWidth;
 
     public CommentsListingFragment() {
         // Required empty public constructor
@@ -302,6 +305,22 @@ public class CommentsListingFragment extends Fragment implements FragmentCommuni
                 });
             }
 
+            onLayoutChangeListener = (v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
+                int width = right - left;
+                if (recyclerViewWidth == width) {
+                    return;
+                }
+                recyclerViewWidth = width;
+                v.post(() -> {
+                    int widthInDp = Utils.convertPxToDp(width, mActivity);
+                    if (mAdapter != null) {
+                        mAdapter.provideItemWidth(widthInDp);
+                        refreshAdapter(binding.recyclerViewCommentsListingFragment, mAdapter);
+                    }
+                });
+            };
+            binding.recyclerViewCommentsListingFragment.addOnLayoutChangeListener(onLayoutChangeListener);
+
             CommentViewModel.Factory factory;
 
             if (mActivity.accountName.equals(Account.ANONYMOUS_ACCOUNT)) {
@@ -363,6 +382,10 @@ public class CommentsListingFragment extends Fragment implements FragmentCommuni
     @Override
     public void onDestroy() {
         EventBus.getDefault().unregister(this);
+        if (onLayoutChangeListener != null) {
+            binding.recyclerViewCommentsListingFragment.removeOnLayoutChangeListener(onLayoutChangeListener);
+            onLayoutChangeListener = null;
+        }
         super.onDestroy();
     }
 
@@ -461,13 +484,58 @@ public class CommentsListingFragment extends Fragment implements FragmentCommuni
                 });
     }
 
+    public void toggleSaveComment(Comment comment, int position) {
+        if (comment.isSaved()) {
+            SaveThing.unsaveThing(mOauthRetrofit, mActivity.accessToken, comment.getFullName(), new SaveThing.SaveThingListener() {
+                @Override
+                public void success() {
+                    Toast.makeText(mActivity, R.string.comment_unsaved_success, Toast.LENGTH_SHORT).show();
+                    comment.setSaved(false);
+                    if (mAdapter != null) {
+                        mAdapter.toggleSaveComment(comment, position);
+                    }
+                }
+
+                @Override
+                public void failed() {
+                    Toast.makeText(mActivity, R.string.comment_unsaved_failed, Toast.LENGTH_SHORT).show();
+                    comment.setSaved(true);
+                    if (mAdapter != null) {
+                        mAdapter.toggleSaveComment(comment, position);
+                    }
+                }
+            });
+        } else {
+            SaveThing.saveThing(mOauthRetrofit, mActivity.accessToken, comment.getFullName(), new SaveThing.SaveThingListener() {
+                @Override
+                public void success() {
+                    Toast.makeText(mActivity, R.string.comment_saved_success, Toast.LENGTH_SHORT).show();
+                    comment.setSaved(true);
+                    if (mAdapter != null) {
+                        mAdapter.toggleSaveComment(comment, position);
+                    }
+                }
+
+                @Override
+                public void failed() {
+                    Toast.makeText(mActivity, R.string.comment_saved_failed, Toast.LENGTH_SHORT).show();
+                    comment.setSaved(false);
+                    if (mAdapter != null) {
+                        mAdapter.toggleSaveComment(comment, position);
+                    }
+                }
+            });
+        }
+    }
+
     @Subscribe
     public void onChangeNetworkStatusEvent(ChangeNetworkStatusEvent changeNetworkStatusEvent) {
         if (mAdapter != null) {
             String dataSavingMode = mSharedPreferences.getString(SharedPreferencesUtils.DATA_SAVING_MODE, SharedPreferencesUtils.DATA_SAVING_MODE_OFF);
             if (dataSavingMode.equals(SharedPreferencesUtils.DATA_SAVING_MODE_ONLY_ON_CELLULAR_DATA)) {
-                mAdapter.setDataSavingMode(changeNetworkStatusEvent.connectedNetwork == Utils.NETWORK_TYPE_CELLULAR);
-                refreshAdapter(binding.recyclerViewCommentsListingFragment, mAdapter);
+                if (mAdapter.setDataSavingMode(changeNetworkStatusEvent.connectedNetwork == Utils.NETWORK_TYPE_CELLULAR)) {
+                    refreshAdapter(binding.recyclerViewCommentsListingFragment, mAdapter);
+                }
             }
         }
     }
@@ -502,5 +570,10 @@ public class CommentsListingFragment extends Fragment implements FragmentCommuni
     @Override
     public void toggleLock(@NonNull Comment comment, int position) {
         mCommentViewModel.toggleLock(comment, position);
+    }
+
+    @Override
+    public void toggleMod(@NonNull Comment comment, int position) {
+        mCommentViewModel.toggleMod(comment, position);
     }
 }

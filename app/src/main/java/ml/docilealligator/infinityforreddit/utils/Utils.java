@@ -64,12 +64,12 @@ public final class Utils {
     public static final int NETWORK_TYPE_OTHER = -1;
     public static final int NETWORK_TYPE_WIFI = 0;
     public static final int NETWORK_TYPE_CELLULAR = 1;
-    private static final long SECOND_MILLIS = 1000;
-    private static final long MINUTE_MILLIS = 60 * SECOND_MILLIS;
-    private static final long HOUR_MILLIS = 60 * MINUTE_MILLIS;
-    private static final long DAY_MILLIS = 24 * HOUR_MILLIS;
-    private static final long MONTH_MILLIS = 30 * DAY_MILLIS;
-    private static final long YEAR_MILLIS = 12 * MONTH_MILLIS;
+    public static final long SECOND_MILLIS = 1000;
+    public static final long MINUTE_MILLIS = 60 * SECOND_MILLIS;
+    public static final long HOUR_MILLIS = 60 * MINUTE_MILLIS;
+    public static final long DAY_MILLIS = 24 * HOUR_MILLIS;
+    public static final long MONTH_MILLIS = 30 * DAY_MILLIS;
+    public static final long YEAR_MILLIS = 12 * MONTH_MILLIS;
 
     public static String HOSTNAME_REGEX = "^(?=^.{1,253}$)(([a-z\\d]([a-z\\d-]{0,62}[a-z\\d])*[\\.]){1,3}[a-z]{1,61})$";
     private static final Pattern[] REGEX_PATTERNS = {
@@ -175,7 +175,7 @@ public final class Utils {
                         markdownStringBuilder.replace(previewReddItAndIReddItImageMatcher.start(), previewReddItAndIReddItImageMatcher.end(), replacingText);
                         start = replacingText.length() + previewReddItAndIReddItImageMatcher.start();
                     }
-                } else if (previewReddItAndIReddItImageMatcher.group(2) != null) {
+                } else if (previewReddItAndIReddItImageMatcher.group(5) != null) {
                     String id = previewReddItAndIReddItImageMatcher.group(8);
                     String caption = previewReddItAndIReddItImageMatcher.group(6);
 
@@ -460,6 +460,11 @@ public final class Utils {
 
     public static float convertDpToPixel(float dp, Context context) {
         return dp * ((float) context.getResources().getDisplayMetrics().densityDpi / DisplayMetrics.DENSITY_DEFAULT);
+    }
+
+    public static int convertPxToDp(int px, Context context) {
+        DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
+        return Math.round(px / (displayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT));
     }
 
     @Nullable
