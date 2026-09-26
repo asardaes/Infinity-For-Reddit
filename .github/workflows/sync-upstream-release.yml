@@ -61,7 +61,6 @@ jobs:
           git config --global user.email "action@github.com"
           git config --global user.name "GitHub Action"
 
-          git switch -c "${SYNC_BRANCH}"
           git merge --no-edit --no-ff "refs/tags/${tag}" -m "Sync upstream release ${tag}"
           echo "already_synced=false" >>"${GITHUB_OUTPUT}"
 
