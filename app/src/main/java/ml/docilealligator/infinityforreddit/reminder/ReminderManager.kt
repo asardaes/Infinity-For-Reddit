@@ -72,6 +72,23 @@ class ReminderManager(
         return redditRoomDatabase.reminderDao().getAllRemindersFlow()
     }
 
+    suspend fun updateReminder(reminder: Reminder, newReminderTime: Long) {
+        redditRoomDatabase.reminderDao().deleteReminder(reminder)
+        val newReminder = reminder.copy(
+            reminderTime = newReminderTime
+        )
+        redditRoomDatabase.reminderDao().insert(newReminder)
+        setAlarm(newReminder)
+    }
+
+    suspend fun deleteReminder(reminder: Reminder) {
+        redditRoomDatabase.reminderDao().deleteReminder(reminder)
+        PendingIntent.getBroadcast(applicationContext, reminder.createdAt.toInt(), Intent(
+            applicationContext,
+            ReminderAlarmReceiver::class.java
+        ), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT).cancel();
+    }
+
     companion object {
         fun sendNotification(
             context: Context,
