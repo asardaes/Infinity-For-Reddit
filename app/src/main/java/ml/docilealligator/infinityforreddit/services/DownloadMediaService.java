@@ -420,10 +420,10 @@ public class DownloadMediaService extends JobService {
 
                 boolean allImagesDownloadedSuccessfully = true;
                 for (int i = 0; i < urls.length; i++) {
-                    String mimeType = Integer.parseInt(mediaTypes[i]) == EXTRA_MEDIA_TYPE_VIDEO ? "video/*" : "image/*";
+                    int currentMediaType = Integer.parseInt(mediaTypes[i]);
                     int finalI = i;
-                    allImagesDownloadedSuccessfully &= downloadMedia(params, urls[i], extras, builder, mediaType, randomNotificationIdOffset, fileNames[i],
-                            mimeType, subredditName, isNsfw, true,
+                    allImagesDownloadedSuccessfully &= downloadMedia(params, urls[i], extras, builder, currentMediaType, randomNotificationIdOffset, fileNames[i],
+                            subredditName, isNsfw, true,
                             new DownloadProgressResponseBody.ProgressListener() {
                                 long time = 0;
                                 @Override
@@ -434,7 +434,7 @@ public class DownloadMediaService extends JobService {
                                             if (currentTime - time > 1000) {
                                                 time = currentTime;
                                                 int currentMediaProgress = (int) (((float) bytesRead / contentLength + (float) finalI / urls.length) * 100);
-                                                updateNotification(builder, mediaType, 0,
+                                                updateNotification(builder, currentMediaType, null, 0,
                                                         currentMediaProgress, randomNotificationIdOffset,
                                                         null, null);
                                             }
@@ -444,7 +444,7 @@ public class DownloadMediaService extends JobService {
                             });
                 }
 
-                updateNotification(builder, mediaType,
+                updateNotification(builder, mediaType, null,
                         allImagesDownloadedSuccessfully ? R.string.downloading_media_finished : R.string.download_gallery_failed_some_images,
                         -1, randomNotificationIdOffset,
                         null, null);
@@ -452,10 +452,9 @@ public class DownloadMediaService extends JobService {
             } else {
                 String fileUrl = extras.getString(EXTRA_URL);
                 String fileName = extras.getString(EXTRA_FILE_NAME);
-                String mimeType = mediaType == EXTRA_MEDIA_TYPE_VIDEO ? "video/*" : "image/*";
 
                 downloadMedia(params, fileUrl, extras, builder, mediaType, randomNotificationIdOffset, fileName,
-                        mimeType, subredditName, isNsfw, false, new DownloadProgressResponseBody.ProgressListener() {
+                        subredditName, isNsfw, false, new DownloadProgressResponseBody.ProgressListener() {
                             long time = 0;
                             @Override
                             public void update(long bytesRead, long contentLength, boolean done) {
@@ -464,7 +463,7 @@ public class DownloadMediaService extends JobService {
                                         long currentTime = System.currentTimeMillis();
                                         if (currentTime - time > 1000) {
                                             time = currentTime;
-                                            updateNotification(builder, mediaType, 0,
+                                            updateNotification(builder, mediaType, null, 0,
                                                     (int) ((100 * bytesRead) / contentLength), randomNotificationIdOffset, null, null);
                                         }
                                     }
@@ -491,7 +490,6 @@ public class DownloadMediaService extends JobService {
      * @param mediaType
      * @param randomNotificationIdOffset
      * @param fileName
-     * @param mimeType
      * @param subredditName
      * @param isNsfw
      * @param multipleDownloads
@@ -500,15 +498,15 @@ public class DownloadMediaService extends JobService {
      */
     private boolean downloadMedia(JobParameters params, String fileUrl, PersistableBundle intent,
                                NotificationCompat.Builder builder, int mediaType, int randomNotificationIdOffset,
-                               String fileName, String mimeType, String subredditName, boolean isNsfw,
+                               String fileName, String subredditName, boolean isNsfw,
                                boolean multipleDownloads, DownloadProgressResponseBody.ProgressListener progressListener) {
         if (fileUrl == null) {
-            // Only Redgifs and Streamble video can go inside this if clause.
+            // Only Redgifs and Streamble video can go inside this if-clause.
             String redgifsId = intent.getString(EXTRA_REDGIFS_ID, null);
             String streamableShortCode = intent.getString(EXTRA_STREAMABLE_SHORT_CODE, null);
 
             if (redgifsId == null && streamableShortCode == null) {
-                downloadFinished(params, builder, mediaType, randomNotificationIdOffset, mimeType,
+                downloadFinished(params, builder, mediaType, randomNotificationIdOffset, null,
                         null,
                         ERROR_INVALID_ARGUMENT,
                         multipleDownloads);
@@ -520,7 +518,7 @@ public class DownloadMediaService extends JobService {
                     redgifsId, streamableShortCode);
 
             if (fileUrl == null) {
-                downloadFinished(params, builder, mediaType, randomNotificationIdOffset, mimeType,
+                downloadFinished(params, builder, mediaType, randomNotificationIdOffset, null,
                         null,
                         redgifsId == null ? ERROR_CANNOT_FETCH_STREAMABLE_VIDEO_LINK : ERROR_FILE_CANNOT_FETCH_REDGIFS_VIDEO_LINK,
                         multipleDownloads);
@@ -548,13 +546,40 @@ public class DownloadMediaService extends JobService {
         boolean separateDownloadFolder = mSharedPreferences.getBoolean(SharedPreferencesUtils.SEPARATE_FOLDER_FOR_EACH_SUBREDDIT, false);
 
         Response<ResponseBody> response;
-        String destinationFileUriString = null;
+        String destinationFileUriString;
         boolean isDefaultDestination = true;
         try {
             response = retrofit.create(DownloadFile.class).downloadFile(fileUrl).execute();
             try (ResponseBody responseBody = response.body()) {
                 if (response.isSuccessful() && responseBody != null) {
                     String destinationFileDirectory = getDownloadLocation(mediaType, isNsfw);
+
+                    String extension = StringKt.getExtensionFromFileName(fileName);
+                    String mimeType = null;
+                    if (extension != null) {
+                        mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+                        if (mediaType == EXTRA_MEDIA_TYPE_VIDEO && (mimeType == null || mimeType.startsWith("image"))) {
+                            extension = "mp4";
+                            mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+                        }
+                        fileName = StringKt.getLowercaseExtensionForFileName(fileName, extension);
+                    }
+                    if (mimeType == null) {
+                        switch (mediaType) {
+                            case EXTRA_MEDIA_TYPE_VIDEO:
+                                mimeType = "video/mpeg";
+                                break;
+                            case EXTRA_MEDIA_TYPE_GIF:
+                                mimeType = "image/gif";
+                                break;
+                            default:
+                                mimeType = "image/png";
+                        }
+                    }
+
+                    updateNotification(builder, mediaType, fileName, 0,
+                            -1, randomNotificationIdOffset, null, mimeType);
+
                     if (destinationFileDirectory.isEmpty()) {
                         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
                             File directory = getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
@@ -606,10 +631,9 @@ public class DownloadMediaService extends JobService {
                         }
                         DocumentFile checkForDuplicates = dir.findFile(fileName);
                         int extensionPosition = fileName.lastIndexOf('.');
-                        String extension = fileName.substring(extensionPosition);
                         int num = 1;
                         while (checkForDuplicates != null) {
-                            fileName = fileName.substring(0, extensionPosition) + " (" + num + ")" + extension;
+                            fileName = fileName.substring(0, extensionPosition) + " (" + num + ")." + extension;
                             checkForDuplicates = dir.findFile(fileName);
                             num++;
                         }
@@ -621,28 +645,33 @@ public class DownloadMediaService extends JobService {
                         }
                         destinationFileUriString = picFile.getUri().toString();
                     }
-                } else {
-                    downloadFinished(params, builder, mediaType, randomNotificationIdOffset, mimeType, null,
-                            ERROR_FILE_CANNOT_DOWNLOAD, multipleDownloads);
-                    return false;
-                }
 
-                try {
-                    Uri destinationFileUri = writeResponseBodyToDisk(responseBody, isDefaultDestination, destinationFileUriString,
-                            fileName, mediaType);
-                    downloadFinished(params, builder, mediaType, randomNotificationIdOffset,
-                            mimeType, destinationFileUri, NO_ERROR, multipleDownloads);
-                    return true;
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    downloadFinished(params, builder, mediaType, randomNotificationIdOffset,
-                            mimeType, null, ERROR_FILE_CANNOT_SAVE, multipleDownloads);
+                    try {
+                        Uri destinationFileUri = writeResponseBodyToDisk(
+                                responseBody,
+                                isDefaultDestination,
+                                destinationFileUriString,
+                                fileName,
+                                mimeType
+                        );
+                        downloadFinished(params, builder, mediaType, randomNotificationIdOffset,
+                                mimeType, destinationFileUri, NO_ERROR, multipleDownloads);
+                        return true;
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        downloadFinished(params, builder, mediaType, randomNotificationIdOffset,
+                                null, null, ERROR_FILE_CANNOT_SAVE, multipleDownloads);
+                        return false;
+                    }
+                } else {
+                    downloadFinished(params, builder, mediaType, randomNotificationIdOffset, null, null,
+                            ERROR_FILE_CANNOT_DOWNLOAD, multipleDownloads);
                     return false;
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
-            downloadFinished(params, builder, mediaType, randomNotificationIdOffset, mimeType, null,
+            downloadFinished(params, builder, mediaType, randomNotificationIdOffset, null, null,
                     ERROR_FILE_CANNOT_DOWNLOAD, multipleDownloads);
             return false;
         }
@@ -655,13 +684,24 @@ public class DownloadMediaService extends JobService {
                 .build();
     }
 
-    private void updateNotification(NotificationCompat.Builder builder, int mediaType, int contentStringResId, int progress, int randomNotificationIdOffset,
-                                    Uri mediaUri, String mimeType) {
+    private void updateNotification(
+            NotificationCompat.Builder builder,
+            int mediaType,
+            String fileName,
+            int contentStringResId,
+            int progress,
+            int randomNotificationIdOffset,
+            Uri mediaUri,
+            String mimeType
+    ) {
         if (notificationManager != null) {
             if (progress < 0) {
                 builder.setProgress(0, 0, false);
             } else {
                 builder.setProgress(100, progress, false);
+            }
+            if (fileName != null) {
+                builder.setContentTitle(fileName);
             }
             if (contentStringResId != 0) {
                 builder.setContentText(getString(contentStringResId));
@@ -745,8 +785,8 @@ public class DownloadMediaService extends JobService {
     }
 
     private Uri writeResponseBodyToDisk(ResponseBody body, boolean isDefaultDestination,
-                                        String destinationFileUriString, String destinationFileName,
-                                        int mediaType) throws IOException {
+                                        String destinationFileUriString, String fileName,
+                                        String mimeType) throws IOException {
         ContentResolver contentResolver = getContentResolver();
         if (isDefaultDestination) {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
@@ -773,29 +813,7 @@ public class DownloadMediaService extends JobService {
                 }
             } else {
                 ContentValues contentValues = new ContentValues();
-                String extension = StringKt.getExtensionFromFileName(destinationFileName);
-                String mimeType = null;
-                if (extension != null) {
-                    mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
-                    if (mediaType == EXTRA_MEDIA_TYPE_VIDEO && (mimeType == null || mimeType.startsWith("image"))) {
-                        extension = "mp4";
-                        mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
-                    }
-                    destinationFileName = StringKt.getLowercaseExtensionForFileName(destinationFileName, extension);
-                }
-                contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, destinationFileName);
-                if (mimeType == null) {
-                    switch (mediaType) {
-                        case EXTRA_MEDIA_TYPE_VIDEO:
-                            mimeType = "video/mpeg";
-                            break;
-                        case EXTRA_MEDIA_TYPE_GIF:
-                            mimeType = "image/gif";
-                            break;
-                        default:
-                            mimeType = "image/png";
-                    }
-                }
+                contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
                 contentValues.put(MediaStore.MediaColumns.MIME_TYPE, mimeType);
                 contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH, destinationFileUriString);
                 contentValues.put(MediaStore.MediaColumns.IS_PENDING, 1);
@@ -850,33 +868,33 @@ public class DownloadMediaService extends JobService {
     }
 
     private void downloadFinished(JobParameters parameters, NotificationCompat.Builder builder, int mediaType,
-                                  int randomNotificationIdOffset, String mimeType, Uri destinationFileUri,
-                                  int errorCode, boolean multipleDownloads) {
+                                  int randomNotificationIdOffset, String mimeType,
+                                  Uri destinationFileUri, int errorCode, boolean multipleDownloads) {
         if (errorCode != NO_ERROR) {
             if (!multipleDownloads) {
                 switch (errorCode) {
                     case ERROR_CANNOT_GET_DESTINATION_DIRECTORY:
-                        updateNotification(builder, mediaType, R.string.downloading_image_or_gif_failed_cannot_get_destination_directory,
+                        updateNotification(builder, mediaType, null, R.string.downloading_image_or_gif_failed_cannot_get_destination_directory,
                                 -1, randomNotificationIdOffset, null, null);
                         break;
                     case ERROR_FILE_CANNOT_DOWNLOAD:
-                        updateNotification(builder, mediaType, R.string.downloading_media_failed_cannot_download_media,
+                        updateNotification(builder, mediaType, null, R.string.downloading_media_failed_cannot_download_media,
                                 -1, randomNotificationIdOffset, null, null);
                         break;
                     case ERROR_FILE_CANNOT_SAVE:
-                        updateNotification(builder, mediaType, R.string.downloading_media_failed_cannot_save_to_destination_directory,
+                        updateNotification(builder, mediaType, null, R.string.downloading_media_failed_cannot_save_to_destination_directory,
                                 -1, randomNotificationIdOffset, null, null);
                         break;
                     case ERROR_FILE_CANNOT_FETCH_REDGIFS_VIDEO_LINK:
-                        updateNotification(builder, mediaType, R.string.download_media_failed_cannot_fetch_redgifs_url,
+                        updateNotification(builder, mediaType, null, R.string.download_media_failed_cannot_fetch_redgifs_url,
                                 -1, randomNotificationIdOffset, null, null);
                         break;
                     case ERROR_CANNOT_FETCH_STREAMABLE_VIDEO_LINK:
-                        updateNotification(builder, mediaType, R.string.download_media_failed_cannot_fetch_streamable_url,
+                        updateNotification(builder, mediaType, null, R.string.download_media_failed_cannot_fetch_streamable_url,
                                 -1, randomNotificationIdOffset, null, null);
                         break;
                     case ERROR_INVALID_ARGUMENT:
-                        updateNotification(builder, mediaType, R.string.download_media_failed_invalid_argument,
+                        updateNotification(builder, mediaType, null, R.string.download_media_failed_invalid_argument,
                                 -1, randomNotificationIdOffset, null, null);
                         break;
                 }
@@ -888,7 +906,7 @@ public class DownloadMediaService extends JobService {
                     DownloadMediaService.this, new String[]{destinationFileUri.toString()}, null,
                     (path, uri) -> {
                         if (!multipleDownloads) {
-                            updateNotification(builder, mediaType, R.string.downloading_media_finished, -1,
+                            updateNotification(builder, mediaType, null, R.string.downloading_media_finished, -1,
                                     randomNotificationIdOffset, destinationFileUri, mimeType);
 
                             jobFinished(parameters, false);

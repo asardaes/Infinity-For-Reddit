@@ -1526,7 +1526,9 @@
 
     <string name="i_understand">I understand</string>
     <string name="whats_new_in">What’s New in %1$s?</string>
-    <string name="whats_new_changelogs">Minor bugs fixed.
+    <string name="whats_new_changelogs">Long press the reminder in the reminders page to edit or delete it.
+        \nFixed the incorrect filename when downloading the gif as a video.
+        \nMinor bugs fixed.
     </string>
     <string name="important_info_post_comments_rework_join_subreddit">Click here to join r/Infinity_For_Reddit</string>
 
@@ -1688,6 +1690,7 @@
     <string name="reminder_reliability_notice_device_settings_description">Some phones (like Xiaomi, Oppo, or Vivo) require you to turn on "Auto-start" or "Background App Launch" in your phone\'s system settings. Otherwise, reminders will stop working if your phone restarts.</string>
     <string name="reminder_set">Reminder set</string>
     <string name="reminder">Reminder</string>
+    <string name="reminder_time">Reminder time</string>
 
     <string name="onboarding_welcome_to">Welcome to</string>
     <string name="onboarding_infinity_for_reddit">Infinity for Reddit</string>
