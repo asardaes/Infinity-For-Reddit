@@ -70,6 +70,7 @@ jobs:
         uses: peter-evans/create-pull-request@v8
         with:
           branch: ${{ env.SYNC_BRANCH }}
+          base: master
           delete-branch: true
           title: "Sync upstream release ${{ steps.release.outputs.tag }}"
           commit-message: "Sync upstream release ${{ steps.release.outputs.tag }}"
