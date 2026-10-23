@@ -2,7 +2,6 @@ package ml.docilealligator.infinityforreddit.viewmodels
 
 import android.content.SharedPreferences
 import android.net.Uri
-import android.os.Bundle
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -13,18 +12,17 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import ml.docilealligator.infinityforreddit.AppResult
-import ml.docilealligator.infinityforreddit.LiveDataState
+import ml.docilealligator.infinityforreddit.result.AppResult
+import ml.docilealligator.infinityforreddit.state.LiveDataState
 import ml.docilealligator.infinityforreddit.R
-import ml.docilealligator.infinityforreddit.VReddItReturnType
+import ml.docilealligator.infinityforreddit.video.VReddItReturnType
 import ml.docilealligator.infinityforreddit.activities.ViewVideoActivity
 import ml.docilealligator.infinityforreddit.apis.StreamableAPIKt
 import ml.docilealligator.infinityforreddit.extensions.getFileNameFromUrlString
-import ml.docilealligator.infinityforreddit.fetchVideoLink
+import ml.docilealligator.infinityforreddit.video.fetchVideoLink
 import ml.docilealligator.infinityforreddit.post.Post
 import ml.docilealligator.infinityforreddit.thing.StreamableVideo
 import ml.docilealligator.infinityforreddit.utils.getRandomString
-import org.apache.commons.io.FilenameUtils
 import retrofit2.Retrofit
 import javax.inject.Provider
 
