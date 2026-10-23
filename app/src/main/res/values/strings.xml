@@ -49,6 +49,7 @@
     <string name="comment_filter_preference_activity_label">Comment Filter</string>
     <string name="customize_comment_filter_activity_label">Customize Comment Filter</string>
     <string name="copy_multireddit_activity_label">Copy Multireddit</string>
+    <string name="mod_mail_activity_label">ModMail</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -392,6 +393,7 @@
     <string name="label_account">Account</string>
     <string name="label_reddit">Reddit</string>
     <string name="label_post">Post</string>
+    <string name="label_moderation">Moderation</string>
     <string name="label_preferences">Preferences</string>
 
     <string name="account_switched">Account Switched. So all other pages are gone.</string>
@@ -1526,8 +1528,8 @@
 
     <string name="i_understand">I understand</string>
     <string name="whats_new_in">What’s New in %1$s?</string>
-    <string name="whats_new_changelogs">Long press the reminder in the reminders page to edit or delete it.
-        \nFixed the incorrect filename when downloading the gif as a video.
+    <string name="whats_new_changelogs">Fixed gallery posts not displaying properly.
+        \nFixed an issue where the Main Page Back Button Action stopped working after the first use.
         \nMinor bugs fixed.
     </string>
     <string name="important_info_post_comments_rework_join_subreddit">Click here to join r/Infinity_For_Reddit</string>
@@ -1623,8 +1625,8 @@
     <string name="download_video">Download Video</string>
     <string name="download_all_gallery_images">Download All Gallery Images</string>
 
-    <string name="proxy_http">HTTP</string>
-    <string name="proxy_socks">SOCKS</string>
+    <string name="proxy_http" translatable="false">HTTP</string>
+    <string name="proxy_socks" translatable="false">SOCKS</string>
     <string name="proxy_direct">Direct</string>
 
     <string name="jump_to_parent_comment">Jump to Parent Comment</string>
@@ -1693,7 +1695,7 @@
     <string name="reminder_time">Reminder time</string>
 
     <string name="onboarding_welcome_to">Welcome to</string>
-    <string name="onboarding_infinity_for_reddit">Infinity for Reddit</string>
+    <string name="onboarding_infinity_for_reddit" translatable="false">Infinity for Reddit</string>
     <string name="content_description_infinity_icon">Icon of Infinity for Reddit</string>
     <string name="content_description_background">Background</string>
     <string name="infinitely_better_experience">The infinitely better Reddit experience</string>
@@ -1721,4 +1723,11 @@
     <string name="more_features">And There\'s More!</string>
     <string name="more_features_description">Discover even more tools and features waiting for you inside the app</string>
     <string name="content_description_more_features">Screenshot of more features</string>
+
+    <string name="mod_mail">Mod Mail</string>
+    <string name="mod_mail_unread">Unread</string>
+    <string name="mod_mail_recent">Recent</string>
+    <string name="mod_mail_mod">Mod</string>
+    <string name="mod_mail_user">User</string>
+    <string name="refresh_conversation_failed">Cannot refresh the conversation</string>
 </resources>
