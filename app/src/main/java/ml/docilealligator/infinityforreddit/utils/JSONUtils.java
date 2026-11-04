@@ -216,6 +216,11 @@ public class JSONUtils {
     public static final String OBJ_IDS_KEY = "objIds";
     public static final String MESSAGES_KEY = "messages";
     public static final String CONVERSATION_KEY = "conversation";
+    public static final String USER_KEY = "user";
+    public static final String MOD_ACTIONS_KEY = "modActions";
+    public static final String IS_DELETED_KEY = "is_deleted";
+    public static final String THUMBNAIL_WIDTH_KEY = "thumbnail_width";
+    public static final String THUMBNAIL_HEIGHT_KEY = "thumbnail_height";
 
     @Nullable
     public static Map<String, MediaMetadata> parseMediaMetadata(JSONObject data) {
