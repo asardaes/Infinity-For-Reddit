@@ -110,6 +110,10 @@
     <string name="action_previous_parent_comment">Previous Top-Level Comment</string>
     <string name="action_back_content_description">Back</string>
     <string name="action_more_post_options">More Post Options</string>
+    <string name="action_refresh_mod_mail_conversations">Refresh Conversations</string>
+    <string name="action_refresh_mod_mail_messages_in_conversation">Refresh Messages</string>
+    <string name="action_user_mod_action">User Actions</string>
+    <string name="action_view_user_info">View User Info</string>
 
     <string name="parse_json_response_error">Error occurred when parsing the JSON response</string>
     <string name="retrieve_token_error">Error Retrieving the token</string>
@@ -1528,9 +1532,8 @@
 
     <string name="i_understand">I understand</string>
     <string name="whats_new_in">What’s New in %1$s?</string>
-    <string name="whats_new_changelogs">Fixed gallery posts not displaying properly.
-        \nFixed an issue where the Main Page Back Button Action stopped working after the first use.
-        \nMinor bugs fixed.
+    <string name="whats_new_changelogs">Fixed an issue where certain gallery posts were not displaying correctly.
+        \nFixed an issue where submitted gallery posts were incorrectly rendered as link posts.
     </string>
     <string name="important_info_post_comments_rework_join_subreddit">Click here to join r/Infinity_For_Reddit</string>
 
@@ -1611,6 +1614,7 @@
     <string name="content_description_downvoted">Downvoted</string>
     <string name="content_description_hidden">Hidden</string>
     <string name="content_description_saved">Saved</string>
+    <string name="content_description_toolbar_menu_icon">Options</string>
 
     <string name="comment">Comment</string>
     <string name="enable_reply_notifications">Receive reply notifications</string>
@@ -1730,4 +1734,54 @@
     <string name="mod_mail_mod">Mod</string>
     <string name="mod_mail_user">User</string>
     <string name="refresh_conversation_failed">Cannot refresh the conversation</string>
+    <string name="could_not_load_mod_mail_with_reason">Couldn\'t load mod mail. Reason: %1$s.</string>
+    <string name="mods_only">Mods Only</string>
+    <string name="new_mod_mail_message_hint">Message</string>
+    <string name="mod_mail_reply_as_subreddit">Reply as subreddit</string>
+    <string name="mod_mail_reply_as">Reply as %1$s</string>
+    <string name="could_not_send_message">Could not send message.</string>
+    <string name="could_not_send_message_with_reason">Could not send message. Error: %1$s</string>
+    <string name="mod_action_highlighted_by">Highlighted by %1$s.</string>
+    <string name="mod_action_unhighlighted_by">Unhighlighted by %1$s.</string>
+    <string name="mod_action_archived_by">Archived by %1$s.</string>
+    <string name="mod_action_unarchived_by">Unarchived by %1$s.</string>
+    <string name="mod_action_reported_to_admins_by">Reported to admins by %1$s.</string>
+    <string name="mod_action_muted_by">Muted by %1$s.</string>
+    <string name="mod_action_unmuted_by">Unmuted by %1$s.</string>
+    <string name="mod_action_unknown_action_by">Unknown action by %1$s.</string>
+    <string name="mod_action_unknown_user">unknown user</string>
+    <string name="no_mod_mail">No mod mail.</string>
+    <string name="archive">Archive</string>
+    <string name="unarchive">Unarchive</string>
+    <string name="highlight">Highlight</string>
+    <string name="unhighlight">Unhighlight</string>
+    <string name="read">Read</string>
+    <string name="unread">Unread</string>
+    <string name="archived">Archived</string>
+    <string name="archive_failed">Failed to archive</string>
+    <string name="archive_failed_with_reason">Failed to archive. Error: %1$s</string>
+    <string name="unarchived">Unarchived</string>
+    <string name="unarchive_failed">Failed to unarchive</string>
+    <string name="unarchive_failed_with_reason">Failed to unarchive. Error: %1$s</string>
+    <string name="highlighted">Highlighted</string>
+    <string name="highlight_failed">Failed to highlight</string>
+    <string name="highlight_failed_with_reason">Failed to highlight. Error: %1$s</string>
+    <string name="unhighlighted">Unhighlighted</string>
+    <string name="unhighlight_failed">Failed to unhighlight</string>
+    <string name="unhighlight_failed_with_reason">Failed to unhighlight. Error: %1$s</string>
+    <string name="read_failed">Failed to read</string>
+    <string name="read_failed_with_reason">Failed to read. Error: %1$s</string>
+    <string name="unread_failed">Failed to unread</string>
+    <string name="unread_failed_with_reason">Failed to unread. Error: %1$s</string>
+    <string name="ban">Ban</string>
+    <string name="ban_user">Ban %1$s</string>
+    <string name="ban_reason_hint">Reason</string>
+    <string name="ban_duration_hint">Duration: (0 - 999) days</string>
+    <string name="perma_ban">Permanent Ban</string>
+    <string name="ban_mod_note_hint">Mod note</string>
+    <string name="ban_mod_note_description">Only mods can see this</string>
+    <string name="unban">Unban</string>
+    <string name="mute">Mute</string>
+    <string name="unmute">Unmute</string>
+    <string name="remove_from_approved_users">Remove from approved users</string>
 </resources>
